@@ -15,7 +15,7 @@ GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 # 在此列表中添加或删除您想订阅的 RSS 源 URL
 RSS_FEEDS = [
     "https://techcrunch.com/category/artificial-intelligence/feed/",
-    "https://www.theguardian.com/profile/editorial/rss"，
+    "https://www.theguardian.com/profile/editorial/rss",
     "https://cn.nytimes.com/rss/", 
     "https://www.csis.org/programs/freeman-chair-china-studies/rss.xml",
 ]

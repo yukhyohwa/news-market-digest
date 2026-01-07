@@ -74,9 +74,9 @@ def fetch_all_feeds(feed_urls):
 
 # --- 可选的测试代码 ---
 if __name__ == '__main__':
-    # 注意：直接运行此文件需要 `config.py` 在同一目录下
+    # 注意：直接运行此文件需要 `config/settings.py` 在 correct location
     try:
-        from config import RSS_FEEDS
+        from config.settings import RSS_FEEDS
         if RSS_FEEDS:
             # 测试列表中的第一个源
             test_articles = fetch_all_feeds([RSS_FEEDS[0]])

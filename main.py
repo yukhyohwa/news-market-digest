@@ -7,8 +7,8 @@ from tqdm import tqdm
 
 # 捕获导入错误，并提供清晰的指引
 try:
-    from rss_fetcher import fetch_all_feeds
-    from gemini_processor import process_articles_with_gemini
+    from core.fetcher import fetch_all_feeds
+    from core.llm import process_articles_with_gemini
 except ImportError as e:
     if "feedparser" in str(e) or "google" in str(e):
         print("❌ 错误: 核心依赖 'feedparser' 或 'google-generativeai' 未安装。")
@@ -20,9 +20,9 @@ except ImportError as e:
         raise e
 
 # 从我们的模块中导入所有需要的函数
-from config import RSS_FEEDS, GEMINI_API_KEY
-from processor import deduplicate_and_merge_articles, filter_articles
-from markdown_generator import write_markdown_file
+from config.settings import RSS_FEEDS, GEMINI_API_KEY
+from core.processor import deduplicate_and_merge_articles, filter_articles
+from core.renderer import write_markdown_file
 
 def run_pipeline(days=None, start_date=None, end_date=None):
     """

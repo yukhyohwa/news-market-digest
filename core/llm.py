@@ -4,7 +4,7 @@ from google.genai import types
 import json
 import time
 from tqdm import tqdm
-from config import GEMINI_API_KEY
+from config.settings import GEMINI_API_KEY
 
 MODEL_NAME = "gemini-2.0-flash" 
 client = genai.Client(api_key=GEMINI_API_KEY)

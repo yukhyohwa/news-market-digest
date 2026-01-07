@@ -8,7 +8,7 @@ def write_markdown_file(categorized_articles, output_filename=""):
     """
     print("\n[阶段 5/5] 开始生成 Markdown 文件...")
     
-    output_dir = "output"
+    output_dir = os.path.join("data", "output")
     # 确保输出目录存在
     os.makedirs(output_dir, exist_ok=True)
 
