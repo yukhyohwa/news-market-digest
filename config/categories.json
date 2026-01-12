@@ -147,7 +147,11 @@
         "Border",
         "Government",
         "Congress",
-        "Parliament"
+        "Parliament",
+        "Human Rights",
+        "人权",
+        "Protest",
+        "抗议"
     ],
     "Energy & Environment": [
         "石油",
@@ -240,7 +244,10 @@
         "Premier League",
         "Champions League",
         "Tennis",
-        "F1"
+        "F1",
+        "Africa Cup of Nations",
+        "AFCON",
+        "非洲杯"
     ],
     "Others": []
 }
