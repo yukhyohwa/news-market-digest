@@ -38,18 +38,17 @@ def write_markdown_file(categorized_articles, output_filename=""):
                 f.write(f"## 📰 {category} ({len(articles)} items)\n\n")
                 
                 for article in articles:
-                    # Article Title
-                    f.write(f"### {article['translated_title']}\n\n")
+                    # Format sources as (Source: Link1, Link2)
+                    source_line = ", ".join([f"[{s['name']}]({s['link']})" for s in article['sources']])
+                    
+                    # Article Title with Source Links
+                    f.write(f"### {article['translated_title']} (Source: {source_line})\n\n")
                     
                     # Translated Summary
                     if article['translated_summary']:
-                        f.write(f"> {article['translated_summary']}\n\n")
+                        f.write(f"{article['translated_summary']}\n\n")
                     
-                    # Original Sources
-                    f.write("**Sources:**\n")
-                    for source in article['sources']:
-                        f.write(f"- [{source['name']}]({source['link']})\n")
-                    f.write("\n---\n\n")
+                    f.write("---\n\n")
         
         print(f"[Stage 5/5] Success! Report saved to: {full_path}")
         return full_path
