@@ -8,7 +8,9 @@ def write_markdown_file(categorized_articles, output_filename=""):
     """
     print("\n[Stage 5/5] Generating Markdown report...")
     
-    output_dir = "output"
+    # Ensure output is saved to the 'output' directory in the project root
+    base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    output_dir = os.path.join(base_dir, "output")
     os.makedirs(output_dir, exist_ok=True)
 
     # Generate default filename based on date
