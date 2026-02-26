@@ -41,3 +41,48 @@ SHOW_IMAGES = False
 # --- 翻译选项 ---
 # 目标语言 (en 为英文, zh-CN 为中文)
 TARGET_LANGUAGE = 'en'
+
+# --- Email Configuration ---
+SMTP_SERVER = "smtp.gmail.com"
+SMTP_PORT = 465  # SSL Port
+SENDER_EMAIL = "shawnlu91@gmail.com"  # 您的 Gmail 地址
+SENDER_PASSWORD = "fgmf fdtt onxv algi" # 16位应用专用密码
+RECEIVER_EMAILS = ["shawnlu91@gmail.com"] # 接收报告的邮箱 list
+
+# --- Strategy Configuration / 策略参数配置 ---
+STRATEGY_CONFIG = {
+    # CEF (Closed-End Funds)
+    'cef': {
+        'min_discount': -8.0,      # 折价率需小于 -8%
+        'max_zscore': -2.0,        # Z-Score 需小于 -2
+        'min_volume_usd': 500000,  # 每日成交额需大于 50万 USD
+    },
+    
+    # SPAC (Special Purpose Acquisition Companies)
+    'spac': {
+        'min_yield': 0.01,         # 年化收益率需大于 1%
+        'min_price': 9.5,          # 最低买入价
+        'max_price': 9.99,         # 最高买入价
+    },
+    
+    # LOF (Listed Open-Ended Funds)
+    'lof': {
+        'min_premium_rate': 5.0,   # 溢价率需大于 5%
+        'min_fund_share': 20000000, # 基金份额需大于 2000万份 (更稳健)
+        'min_turnover': 1000000,    # 成交额需大于 100万元 (保证流动性)
+    },
+    
+    # QDII (Qualified Domestic Institutional Investor)
+    'qdii': {
+        'min_premium_rate': 5.0,   # 溢价率需大于 5% (T-1 or Realtime)
+        'min_fund_share': 20000000, # 基金份额需大于 2000万份
+        'min_turnover': 1000000,    # 成交额需大于 100万元
+    },
+
+    # CBOND (Convertible Bonds)
+    'cbond': {
+        'max_dblow': 195.0,        # 双低值小于 195 (价格 + 溢价率*100)
+        'max_putback_price': 103.0, # 回售价格接近 100 (103以下)
+        'max_putback_years': 2.0,   # 距离回售期/到期小于 2年
+    }
+}

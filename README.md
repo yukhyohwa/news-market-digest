@@ -1,59 +1,70 @@
-# RSS News Summarizer (Keyword & Free Translation) 🚀
+# News & Market Digest 🚀
 
 ![Python](https://img.shields.io/badge/Python-3.x-blue)
 ![License](https://img.shields.io/badge/License-MIT-green)
 ![Status](https://img.shields.io/badge/Status-Active-brightgreen)
-![Translation](https://img.shields.io/badge/Translation-Free_API-orange)
 
-A lightweight RSS news aggregator and summarizer. It automatically fetches articles from multiple RSS feeds, translates them using free APIs, categorizes them based on a custom keyword dictionary, and generates elegant Markdown reports.
+An integrated intelligence tool designed for "Global News Aggregation" and "Financial Arbitrage Monitoring." It provides a comprehensive perspective ranging from macro global insights to micro market opportunities.
 
-## 🌟 Features
+## 🌟 Core Features
 
-- **Multi-source Aggregation**: Supports fetching from multiple RSS/Atom feeds simultaneously.
-- **Free Translation**: Integrated with `deep-translator` to support automatic translation from English, French, Japanese, etc., into Chinese.
-- **Precise Categorization**: Classified based on a keyword dimension table in `config/categories.json`. Supports bilingual (Chinese/English) keywords for reliable and controlled results.
-- **Content Merging**: Automatically merges news items with similar topics to reduce information redundancy.
-- **Localized Storage**: Reports are unified and saved in the `output/` directory.
+### Part 1: 📰 RSS News & Global Insights
+
+* **Multi-source Aggregation**: Subscribe to global mainstream media like TechCrunch, NY Times, BBC, Le Figaro, and more.
+* **Intelligent Translation**: Automatically translate foreign news into Chinese (supports English, French, and other languages).
+* **Keyword Categorization**: Automatically classify news entries (e.g., AI, International) based on a built-in keyword dictionary.
+* **Deduplication & Merging**: Identify and merge similar topics to reduce information redundancy.
+
+### Part 2: 💰 Financial Insights & Arbitrage
+
+* **Fund Arbitrage**: Monitor premium/discount rates and subscription status of LOF/IOF and QDII funds.
+* **Bond Monitoring**: Scan Chinese Convertible Bonds (Cbond) for "Double Low" opportunities and put-back suggestions.
+* **Equity Arbitrage**: Track A-share cash option arbitrage and SPAC yield analysis.
+* **Macro Market Data**: Real-time tracking of Forex rates (BOC) and major commodities (Gold, Silver).
+
+---
 
 ## 📁 Project Structure
 
 ```text
-rss-news-summarizer/
-├── main.py              # Main entry point
-├── app/                 # Source code
-│   ├── core/            # Core logic (Fetcher, Translator, Processor, Renderer)
-├── config/              # Configuration
-│   ├── settings.py      # RSS feed configurations
-│   └── categories.json  # Keyword dimension table (Customizable)
-├── output/              # Generated Markdown reports
-└── requirements.txt     # Dependencies
+global-news-market-digest/
+├── main.py              # Unified entry point
+├── app/               
+│   ├── core/            # Logic: Fetchers, Processors, DB, & Unified Reporter
+│   ├── collectors/      # Financial scrapers: LOF, QDII, Cbond, CEF, etc.
+├── config/            
+│   ├── settings.py      # RSS feeds, Email, and Strategy configurations
+│   └── categories.json  # News categorization dictionary
+├── data/                # SQLite Database (finance_data.db)
+├── output/              # Generated Markdown intelligence reports
+└── requirements.txt     # Project dependencies
 ```
 
 ## 🛠️ Quick Start
 
-### 1. Install Dependencies
+### 1. Installation
+
 ```bash
 pip install -r requirements.txt
 ```
 
-### 2. Configure RSS Feeds
-Edit the `RSS_FEEDS` list in `config/settings.py` to add your preferred RSS URLs.
+### 2. Usage
 
-### 3. Customize Keywords
-Edit `config/categories.json`. You can add new categories or update keywords in existing ones. Matching is case-insensitive.
-
-### 4. Run the Script
 ```bash
-# Default: Fetch articles from the last 1 day
+# Run full aggregation (News + Finance) and generate report
 python main.py
 
-# Fetch articles from the last 7 days
-python main.py --days 7
+# Run only RSS News part
+python main.py --news
 
-# Fetch a specific date range (YYYYMMDD-YYYYMMDD)
-python main.py --range 20260101-20260107
+# Run only Financial Arbitrage part
+python main.py --arb
+
+# Run and send the report via Email
+python main.py --mail
 ```
 
 ## 📄 Notes
-- This project uses free translation APIs. Please avoid high-frequency concurrent calls to prevent temporary IP blocks.
-- Reports are automatically saved in the `output/` folder.
+
+* Financial analysis data is for reference only and does not constitute investment advice.
+* Database is stored in the `data/` directory; Markdown reports are in the `output/` directory.
