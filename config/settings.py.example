@@ -1,0 +1,57 @@
+# config.py
+import os
+
+# --- RSS 源列表 ---
+RSS_FEEDS = [
+    "https://techcrunch.com/category/artificial-intelligence/feed/",
+    "https://cn.nytimes.com/rss/", 
+    "https://www.lefigaro.fr/rss/figaro_actualites.xml",
+    "https://plink.anyfeeder.com/bbc/world"
+]
+
+# --- 屏蔽词列表 ---
+BLOCKED_KEYWORDS = [
+    "曲棍球", "AFCON", "Falun Gong"
+]
+
+# --- 渲染选项 ---
+SHOW_IMAGES = False
+
+# --- 翻译选项 ---
+TARGET_LANGUAGE = 'en'
+
+# --- Email Configuration ---
+SMTP_SERVER = "smtp.gmail.com"
+SMTP_PORT = 465  # SSL Port
+SENDER_EMAIL = "your_email@gmail.com"  # 您的 Gmail 地址
+SENDER_PASSWORD = "your_app_password" # 16位应用专用密码
+RECEIVER_EMAILS = ["your_email@gmail.com"] # 接收报告的邮箱 list
+
+# --- Strategy Configuration / 策略参数配置 ---
+STRATEGY_CONFIG = {
+    'cef': {
+        'min_discount': -8.0,
+        'max_zscore': -2.0,
+        'min_volume_usd': 500000,
+    },
+    'spac': {
+        'min_yield': 0.01,
+        'min_price': 9.5,
+        'max_price': 9.99,
+    },
+    'lof': {
+        'min_premium_rate': 1.0,
+        'min_fund_share': 20000000,
+        'min_turnover': 1000000,
+    },
+    'qdii': {
+        'min_premium_rate': 1.0,
+        'min_fund_share': 20000000,
+        'min_turnover': 1000000,
+    },
+    'cbond': {
+        'max_dblow': 195.0,
+        'max_putback_price': 103.0,
+        'max_putback_years': 2.0,
+    }
+}
