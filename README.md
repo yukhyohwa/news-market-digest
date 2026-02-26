@@ -14,6 +14,7 @@ An integrated intelligence tool designed for "Global News Aggregation" and "Fina
 * **Intelligent Translation**: Automatically translate foreign news into Chinese (supports English, French, and other languages).
 * **Keyword Categorization**: Automatically classify news entries (e.g., AI, International) based on a built-in keyword dictionary.
 * **Deduplication & Merging**: Identify and merge similar topics to reduce information redundancy.
+* **Data Persistence**: Store unique news articles in a local SQLite database for historical tracking.
 
 ### Part 2: 💰 Financial Insights & Arbitrage
 
@@ -36,6 +37,7 @@ news-market-digest/
 │   │   ├── translator.py      # Multi-language translation engine
 │   │   ├── renderer.py        # Markdown report generator for news
 │   │   ├── db.py              # SQLite database manager for financial data
+│   │   ├── news_db.py         # SQLite database manager for news articles
 │   │   ├── arb_reporter.py    # Generator for financial arbitrage analysis
 │   │   ├── unified_reporter.py # Coordinator for merged News + Finance reports
 │   │   └── mailer.py          # SMTP email delivery service
@@ -51,9 +53,11 @@ news-market-digest/
 │   │   ├── a_share_arbitrage.py # A-share cash option and stock arbitrage
 │   │   └── spac_arbitrage.py  # SPAC yield and opportunity analysis
 ├── config/            
-│   ├── settings.py      # Configuration for RSS feeds, API keys, and email
-│   └── categories.json  # Dictionary for news keyword-based categorization
-├── data/                # Local database storage (finance_data.db)
+│   ├── settings.py      # Configuration (Local)
+│   ├── settings.py.example  # Configuration template
+│   ├── categories.json  # Category keywords (Local)
+│   └── categories.json.example # Category template
+├── data/                # Local database storage (finance_data.db, news_data.db)
 ├── output/              # Generated intelligence reports (.md)
 └── requirements.txt     # Python dependencies
 ```

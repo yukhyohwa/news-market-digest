@@ -17,6 +17,7 @@ from app.core.processor import (
     load_categories
 )
 from app.core.db import init_db
+from app.core.news_db import save_news_articles
 from app.core.unified_reporter import generate_unified_report
 from app.core.mailer import send_report_email
 
@@ -43,6 +44,9 @@ def run_news_pipeline(days=1, start_date=None, end_date=None):
     translated = translate_articles(filtered)
     unique = deduplicate_and_merge_articles(translated)
     categorized_data = apply_keyword_categorization(unique)
+    
+    # Save to News Database
+    save_news_articles(categorized_data)
     
     # Organize into categories
     keyword_map = load_categories()
