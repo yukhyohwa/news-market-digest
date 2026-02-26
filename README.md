@@ -82,6 +82,21 @@ python main.py --arb
 python main.py --mail
 ```
 
+## 🚀 Automation (Windows)
+
+The `scripts/` folder contains batch files for easy execution and automation:
+
+- **`run_manual.bat`**: Double-click to manually run the full pipeline and see the results in a console window.
+- **`run_task.bat`**: Designed for **Windows Task Scheduler**. It runs the pipeline silently and logs all output to `output/task_scheduler_log.txt`.
+
+### Setting up Task Scheduler:
+1. Open **Task Scheduler**.
+2. Create a new Basic Task.
+3. Trigger: Daily (or your preferred interval).
+4. Action: Start a Program.
+5. Program/script: Browse to `scripts/run_task.bat`.
+6. Start in: (Crucial) Set this to the project root directory path.
+
 ## 📄 Notes
 
 * Financial analysis data is for reference only and does not constitute investment advice.
