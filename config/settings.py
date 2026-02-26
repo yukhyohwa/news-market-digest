@@ -37,3 +37,7 @@ BLOCKED_KEYWORDS = [
 # --- 渲染选项 ---
 # 是否在报表中显示图片 (默认为 False)
 SHOW_IMAGES = False
+
+# --- 翻译选项 ---
+# 目标语言 (en 为英文, zh-CN 为中文)
+TARGET_LANGUAGE = 'en'
