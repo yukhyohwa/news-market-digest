@@ -27,17 +27,35 @@ An integrated intelligence tool designed for "Global News Aggregation" and "Fina
 ## 📁 Project Structure
 
 ```text
-global-news-market-digest/
+news-market-digest/
 ├── main.py              # Unified entry point
 ├── app/               
-│   ├── core/            # Logic: Fetchers, Processors, DB, & Unified Reporter
-│   ├── collectors/      # Financial scrapers: LOF, QDII, Cbond, CEF, etc.
+│   ├── core/            # Core logical components
+│   │   ├── fetcher.py         # Multi-threaded RSS feed aggregator
+│   │   ├── processor.py       # News cleaning, deduplication, and categorization
+│   │   ├── translator.py      # Multi-language translation engine
+│   │   ├── renderer.py        # Markdown report generator for news
+│   │   ├── db.py              # SQLite database manager for financial data
+│   │   ├── arb_reporter.py    # Generator for financial arbitrage analysis
+│   │   ├── unified_reporter.py # Coordinator for merged News + Finance reports
+│   │   └── mailer.py          # SMTP email delivery service
+│   ├── collectors/      # Specialized financial data scrapers
+│   │   ├── market_indices.py  # Global market indices tracking
+│   │   ├── forex.py           # Real-time exchange rates (BOC)
+│   │   ├── commodities.py     # Gold, Silver, and Commodities prices
+│   │   ├── cbond_monitor.py   # Convertible Bond analysis (Double Low strategy)
+│   │   ├── lof_funds.py       # LOF/IOF premium and discount monitoring
+│   │   ├── qdii_arbitrage.py  # QDII fund arbitrage opportunity tracking
+│   │   ├── cef_arbitrage.py   # Closed-End Fund (CEF) monitoring
+│   │   ├── bond_issuance.py   # New bond issuance alerts
+│   │   ├── a_share_arbitrage.py # A-share cash option and stock arbitrage
+│   │   └── spac_arbitrage.py  # SPAC yield and opportunity analysis
 ├── config/            
-│   ├── settings.py      # RSS feeds, Email, and Strategy configurations
-│   └── categories.json  # News categorization dictionary
-├── data/                # SQLite Database (finance_data.db)
-├── output/              # Generated Markdown intelligence reports
-└── requirements.txt     # Project dependencies
+│   ├── settings.py      # Configuration for RSS feeds, API keys, and email
+│   └── categories.json  # Dictionary for news keyword-based categorization
+├── data/                # Local database storage (finance_data.db)
+├── output/              # Generated intelligence reports (.md)
+└── requirements.txt     # Python dependencies
 ```
 
 ## 🛠️ Quick Start
