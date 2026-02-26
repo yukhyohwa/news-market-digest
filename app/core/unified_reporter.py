@@ -44,7 +44,7 @@ def generate_unified_report(categorized_news=None, include_arb=True):
         # We can reuse the logic from arb_reporter.py but append to our report_content
         # Let's extract the core sections from arb_reporter logic
         
-        # 1. Market Indices
+        # 1. Market Indices (Global)
         rows, cols = fetch_daily_data('market_indices', today)
         if rows:
             display_rows = [[r[2], f"{r[3]:.2f}", f"{r[5]:.2f}%"] for r in rows]
@@ -88,12 +88,23 @@ def generate_unified_report(categorized_news=None, include_arb=True):
         if rows:
             display_rows = []
             for r in rows:
+                fund_name = r[2]
+                # Double filter to ensure no ETF/EOF in report
+                if 'ETF' in fund_name.upper() or 'EOF' in fund_name.upper():
+                    continue
+                
                 details = []
                 if r[9] > 0: details.append(f"Amt:{format_liq(r[9])}")
                 if r[8] > 0: details.append(f"Vol:{format_liq(r[8])}")
-                display_rows.append([r[1], r[2], r[12], f"{r[4]:.2f}%", f"{r[6]:.2f}%" if r[6] is not None else "-", r[11] or "-", ", ".join(details)])
-            report_content += f"### 5. QDII Arbitrage (Premium > {STRATEGY_CONFIG['qdii']['min_premium_rate']}%)\n"
-            report_content += format_table(display_rows, ['Code', 'Name', 'Market', 'T-1 Prem', 'Realtime', 'Status', 'Liquidity'], ['left', 'left', 'left', 'right', 'right', 'left', 'left']) + "\n\n"
+                
+                # Show market as APAC if Asia
+                market = "APAC" if r[12] == "Asia" else r[12]
+                
+                display_rows.append([r[1], fund_name, market, f"{r[4]:.2f}%", f"{r[6]:.2f}%" if r[6] is not None else "-", r[11] or "-", ", ".join(details)])
+            
+            if display_rows:
+                report_content += f"### 5. QDII Arbitrage (Premium > {STRATEGY_CONFIG['qdii']['min_premium_rate']}%)\n"
+                report_content += format_table(display_rows, ['Code', 'Name', 'Market', 'T-1 Prem', 'Realtime', 'Status', 'Liquidity'], ['left', 'left', 'left', 'right', 'right', 'left', 'left']) + "\n\n"
 
         # 6. A-share
         rows, cols = fetch_daily_data('stock_arbitrage', today)
@@ -116,12 +127,37 @@ def generate_unified_report(categorized_news=None, include_arb=True):
             report_content += f"### 8. Cbond Double Low (< {STRATEGY_CONFIG['cbond']['max_dblow']})\n"
             report_content += format_table(display_rows, ['Code', 'Name', 'Price', 'Premium', 'LowIndex', 'Rem.Y'], ['left', 'left', 'right', 'right', 'right', 'right']) + "\n\n"
 
+        rows, cols = fetch_daily_data('cbond_putback', today)
+        if rows:
+            display_rows = [[r[1], r[2], f"{r[3]:.2f}", f"{r[4]:.2f}%", r[6] or "-", f"{r[7]:.2f}y"] for r in rows]
+            report_content += f"### 9. Cbond Put-back Opportunity (< {STRATEGY_CONFIG['cbond']['max_putback_price']})\n"
+            report_content += format_table(display_rows, ['Code', 'Name', 'Price', 'Premium', 'Put Date', 'Rem.Y'], ['left', 'left', 'right', 'right', 'left', 'right']) + "\n\n"
+
         # 10. SPAC
         rows, cols = fetch_daily_data('spac_arbitrage', today)
         if rows:
             display_rows = [[r[1], r[2], r[3], f"{r[4]:.2f}", f"{r[5]:.2f}", f"{r[6]:.2f}%", str(r[7])] for r in rows]
             report_content += "### 10. SPAC Arbitrage\n"
             report_content += format_table(display_rows, ['Symbol', 'Name', 'IPO Date', 'Price', 'NAV', 'Yield', 'Days'], ['left', 'left', 'left', 'right', 'right', 'right', 'right']) + "\n\n"
+
+        # 11. CEF
+        rows, cols = fetch_daily_data('cef_arbitrage', today)
+        if rows:
+            display_rows = []
+            for r in rows:
+                ticker = r[1]
+                price = r[5]
+                discount = r[7]
+                avg_disc = r[8]
+                diff = discount - avg_disc
+                zscore = r[9]
+                vol_usd = (r[10] or 0) * price
+                dist_status = r[11] if len(r) > 11 else ""
+                
+                display_rows.append([ticker, r[2], f"{discount:.2f}%", f"{diff:.2f}%", f"{zscore:.2f}", f"${vol_usd/1000:.0f}K", dist_status])
+            
+            report_content += f"### 11. CEF Arbitrage (Disc < {STRATEGY_CONFIG['cef']['min_discount']}%)\n"
+            report_content += format_table(display_rows, ['Ticker', 'Name', 'Discount', 'Diff', 'Z-Score', 'Vol USD', 'Div Qual'], ['left', 'left', 'right', 'right', 'right', 'right', 'left']) + "\n\n"
 
     # Sources
     report_content += "## 📚 Sources\n"

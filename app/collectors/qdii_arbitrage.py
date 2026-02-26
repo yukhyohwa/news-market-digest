@@ -12,7 +12,7 @@ config = STRATEGY_CONFIG.get('qdii', {
 
 # Configuration
 URLS = {
-    'Asia': 'https://www.jisilu.cn/data/qdii/qdii_list/A',
+    'APAC': 'https://www.jisilu.cn/data/qdii/qdii_list/A',
     'Europe/America': 'https://www.jisilu.cn/data/qdii/qdii_list/E',
     'Commodities': 'https://www.jisilu.cn/data/qdii/qdii_list/C'
 }

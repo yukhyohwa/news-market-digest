@@ -56,5 +56,5 @@ def write_markdown_file(categorized_articles, output_filename=""):
         return full_path
     
     except Exception as e:
-        print(f"❌ Error writing Markdown file: {e}")
+        print(f"[ERR] Error writing Markdown file: {e}")
         return None

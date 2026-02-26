@@ -28,13 +28,13 @@ def fetch_feed(feed_url):
         # Check for HTTP errors (like 403)
         status = getattr(feed, 'status', None)
         if status and status >= 400:
-            print(f"    ❌ HTTP Error {status}: {feed_url}")
+            print(f"    [ERR] HTTP Error {status}: {feed_url}")
             return []
 
         if feed.bozo:
             # Bozo error can sometimes be ignored if entries are still present
             if not feed.entries:
-                print(f"    ⚠️ Warning: Potential feed format issue: {feed_url}, Bozo Error: {feed.bozo_exception}")
+                print(f"    [WARN] Potential feed format issue: {feed_url}, Bozo Error: {feed.bozo_exception}")
             else:
                 pass # Many feeds have minor XML errors but work fine
 
@@ -62,7 +62,7 @@ def fetch_feed(feed_url):
         return articles
         
     except Exception as e:
-        print(f"    ❌ Fetch failed: {feed_url}, Error: {e}")
+        print(f"    [ERR] Fetch failed: {feed_url}, Error: {e}")
         return []
 
 def fetch_all_feeds(feed_urls):

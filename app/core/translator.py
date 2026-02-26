@@ -56,7 +56,7 @@ def translate_articles(articles):
             time.sleep(0.3) # Slightly reduced delay
 
         except Exception as e:
-            print(f"\n❗ Translation error: {e}")
+            print(f"\n[ERR] Translation error: {e}")
             new_article['translated_title'] = article.get('title', 'N/A')
             new_article['translated_summary'] = article.get('summary', '')
             new_article['topic_key'] = None

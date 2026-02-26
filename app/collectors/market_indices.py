@@ -61,7 +61,7 @@ def fetch_market_indices():
                 'prev_close': round(float(prev_close), 2)
             }
             results.append(record)
-            print(f"Fetched {info['name']}: {price:.2f}")
+            print(f"Fetched {info['name']} ({ticker_symbol}): Price={price:.2f}, PrevClose={prev_close:.2f}")
 
     except Exception as e:
         print(f"Error fetching indices: {e}")

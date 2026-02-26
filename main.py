@@ -110,16 +110,16 @@ def main():
     report_path = generate_unified_report(categorized_news, include_arb=(args.all or args.arb))
     
     if report_path:
-        print(f"🎉 Report generated: {report_path}")
+        print(f"[OK] Report generated: {report_path}")
         if args.mail:
             print(">>> Sending report via email...")
             try:
                 send_report_email(report_path)
-                print("✅ Email sent successfully.")
+                print("[SUCCESS] Email sent successfully.")
             except Exception as e:
-                print(f"❌ Failed to send email: {e}")
+                print(f"[ERROR] Failed to send email: {e}")
     else:
-        print("❗ Failed to generate report.")
+        print("[FAIL] Failed to generate report.")
         
     print(f"\nTotal Time: {time.time() - start_time:.2f} seconds")
     print("===========================================")

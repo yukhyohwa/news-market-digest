@@ -32,6 +32,8 @@ BLOCKED_KEYWORDS = [
     # 体育类 (法甲、欧冠等)
     "Ligue 1", "Champions League", 
     "Football", "PSG", "Olympique de Marseille", "Real Madrid",
+    "Zimbabwe", "NBA",
+    "César Awards", "César ceremony", "César du cinéma", "cérémonie des César",
 ]
 
 # --- 渲染选项 ---

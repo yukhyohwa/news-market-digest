@@ -15,7 +15,7 @@ def load_categories():
             with open(config_path, 'r', encoding='utf-8') as f:
                 return json.load(f)
         except Exception as e:
-            print(f"⚠️ Failed to load category config: {e}")
+            print(f"[WARN] Failed to load category config: {e}")
     return {}
 
 def apply_keyword_categorization(articles):
@@ -114,7 +114,7 @@ def filter_articles(articles, days=None, start_date=None, end_date=None):
             filtered_articles.append(article)
     
     if blocked_count > 0:
-        print(f"    🚫 Filtered out {blocked_count} articles based on blocklist.")
+        print(f"    [BLOCK] Filtered out {blocked_count} articles based on blocklist.")
     
     # Optional: Cleanup summaries for a cleaner report (and save translation tokens)
     if not SHOW_IMAGES:
