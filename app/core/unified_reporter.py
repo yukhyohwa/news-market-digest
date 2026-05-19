@@ -94,11 +94,17 @@ def generate_unified_report(categorized_news=None, include_arb=True):
         if rows:
             display_rows = []
             for r in rows:
+                status = r[6]
+                if status and '开放申购' in status:
+                    continue
                 details = []
                 if r[4] > 0: details.append(f"Amt:{format_liq(r[4])}")
                 if r[5] > 0: details.append(f"Vol:{format_liq(r[5])}")
-                display_rows.append([r[0], r[1], f"{r[2]:.3f}", f"{r[3]:.2f}%", r[6] or "-", ", ".join(details)])
-            report_content += format_table(display_rows, ['Code', 'Name', 'Price', 'Premium', 'Status', 'Liquidity'], ['left', 'left', 'right', 'right', 'left', 'left']) + "\n\n"
+                display_rows.append([r[0], r[1], f"{r[2]:.3f}", f"{r[3]:.2f}%", status or "-", ", ".join(details)])
+            if display_rows:
+                report_content += format_table(display_rows, ['Code', 'Name', 'Price', 'Premium', 'Status', 'Liquidity'], ['left', 'left', 'right', 'right', 'left', 'left']) + "\n\n"
+            else:
+                report_content += "*No arbitrage opportunities found today.*\n\n"
         else:
             report_content += "*No arbitrage opportunities found today.*\n\n"
 
@@ -110,11 +116,14 @@ def generate_unified_report(categorized_news=None, include_arb=True):
             for r in rows:
                 fund_name = r[2]
                 if 'ETF' in fund_name.upper() or 'EOF' in fund_name.upper(): continue
+                status = r[11]
+                if status and '开放申购' in status:
+                    continue
                 details = []
                 if r[9] > 0: details.append(f"Amt:{format_liq(r[9])}")
                 if r[8] > 0: details.append(f"Vol:{format_liq(r[8])}")
                 market = "APAC" if r[12] == "Asia" else r[12]
-                display_rows.append([r[1], fund_name, market, f"{r[4]:.2f}%", f"{r[6]:.2f}%" if r[6] is not None else "-", r[11] or "-", ", ".join(details)])
+                display_rows.append([r[1], fund_name, market, f"{r[4]:.2f}%", f"{r[6]:.2f}%" if r[6] is not None else "-", status or "-", ", ".join(details)])
             if display_rows:
                 report_content += format_table(display_rows, ['Code', 'Name', 'Market', 'T-1 Prem', 'Realtime', 'Status', 'Liquidity'], ['left', 'left', 'left', 'right', 'right', 'left', 'left']) + "\n\n"
             else:
@@ -126,8 +135,17 @@ def generate_unified_report(categorized_news=None, include_arb=True):
         report_content += "### 6. A-share Arbitrage\n"
         rows, cols = fetch_daily_data('stock_arbitrage', today)
         if rows:
-            display_rows = [[r[1], r[2], f"{r[3]:.2f}", f"{r[4]:.2f}", r[5], r[6]] for r in rows]
-            report_content += format_table(display_rows, ['Code', 'Name', 'Price', 'Cash Price', 'Type', 'Description'], ['left', 'left', 'right', 'right', 'left', 'left']) + "\n\n"
+            display_rows = []
+            for r in rows:
+                price = r[3]
+                cash_price = r[4]
+                if price and price > 0:
+                    if cash_price >= price * 1.03:
+                        display_rows.append([r[1], r[2], f"{price:.2f}", f"{cash_price:.2f}", r[5], r[6]])
+            if display_rows:
+                report_content += format_table(display_rows, ['Code', 'Name', 'Price', 'Cash Price', 'Type', 'Description'], ['left', 'left', 'right', 'right', 'left', 'left']) + "\n\n"
+            else:
+                report_content += "*No A-share arbitrage opportunities found today.*\n\n"
         else:
             report_content += "*No A-share arbitrage opportunities found today.*\n\n"
 
