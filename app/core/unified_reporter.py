@@ -17,38 +17,7 @@ def generate_unified_report(categorized_news=None, include_arb=True):
     
     report_content = f"# Global News & Market Digest Report ({today})\n\n"
     
-    # 1. News Section
-    if categorized_news:
-        report_content += "## 🌏 Global News Summary\n\n"
-        all_categories = list(categorized_news.keys())
-        
-        # Define target order
-        target_order = ["Technology", "Economy & Finance", "Politics & International", "Energy & Environment"]
-        
-        # Build final display order
-        categories_order = [c for c in target_order if c in categorized_news]
-        # Collect any remaining categories not in target_order
-        remaining = [c for c in all_categories if c not in target_order and c != "Others"]
-        categories_order.extend(remaining)
-        
-        if "Others" in all_categories:
-            categories_order.append("Others")
-        
-        for category in categories_order:
-            articles = categorized_news.get(category, [])
-            if not articles:
-                continue
-            
-            report_content += f"### 📰 {category} ({len(articles)} items)\n\n"
-            for article in articles:
-                source_line = ", ".join([f"[{s['name']}]({s['link']})" for s in article['sources']])
-                report_content += f"#### ● {article['translated_title']} (Source: {source_line})\n"
-                if article['translated_summary']:
-                    truncated_summary = truncate_summary(article['translated_summary'], word_limit=100)
-                    report_content += f"{truncated_summary}\n"
-                report_content += "\n"
-    
-    # 2. Arbitrage Section (from DB)
+    # 1. Arbitrage Section (from DB)
     if include_arb:
         report_content += "## 💰 Market Arbitrage & Opportunities\n\n"
         
@@ -208,6 +177,37 @@ def generate_unified_report(categorized_news=None, include_arb=True):
                 report_content += "*No CEF arbitrage opportunities meeting the volume criteria found today.*\n\n"
         else:
             report_content += "*No CEF arbitrage opportunities found today.*\n\n"
+
+    # 2. News Section
+    if categorized_news:
+        report_content += "## 🌏 Global News Summary\n\n"
+        all_categories = list(categorized_news.keys())
+        
+        # Define target order
+        target_order = ["Technology", "Economy & Finance", "Politics & International", "Energy & Environment"]
+        
+        # Build final display order
+        categories_order = [c for c in target_order if c in categorized_news]
+        # Collect any remaining categories not in target_order
+        remaining = [c for c in all_categories if c not in target_order and c != "Others"]
+        categories_order.extend(remaining)
+        
+        if "Others" in all_categories:
+            categories_order.append("Others")
+        
+        for category in categories_order:
+            articles = categorized_news.get(category, [])
+            if not articles:
+                continue
+            
+            report_content += f"### 📰 {category} ({len(articles)} items)\n\n"
+            for article in articles:
+                source_line = ", ".join([f"[{s['name']}]({s['link']})" for s in article['sources']])
+                report_content += f"#### ● {article['translated_title']} (Source: {source_line})\n"
+                if article['translated_summary']:
+                    truncated_summary = truncate_summary(article['translated_summary'], word_limit=100)
+                    report_content += f"{truncated_summary}\n"
+                report_content += "\n"
 
     # Sources
     report_content += "## 📚 Sources\n"
