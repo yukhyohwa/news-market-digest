@@ -123,12 +123,13 @@ def fetch_qdii_data(market_name, url):
                     target_premium = realtime_premium_rate
                 
                 apply_status = cell.get('apply_status', '')
-                is_open = '开放' in apply_status or not apply_status
                 
-                # Filter: |Premium| > Threshold AND Liquid AND (Optionally) Open for Apply
+                # 只保留限制申购的（如限100、限5千等，即包含“限”字）
+                if not apply_status or '限' not in apply_status:
+                    continue
+                
+                # Filter: |Premium| > Threshold AND Liquid
                 if abs(target_premium) > PREMIUM_THRESHOLD and is_liquid:
-                    if ONLY_OPEN_APPLY and not is_open:
-                        continue
                         
                     fund_info = {
                         'fund_id': fund_id,

@@ -80,15 +80,16 @@ def fetch_data(url, fund_type):
             
             # 申购状态筛选
             apply_status = cell.get('apply_status', '-')
-            is_open = '开放' in apply_status or apply_status in ('-', '')
+            
+            # 只保留限制申购的（如限100、限5千等，即包含“限”字）
+            if '限' not in apply_status:
+                continue
             
             # 规模与流动性
             amount = float(str(cell.get('amount', 0)).replace(',', '')) # 万份
             volume = float(str(cell.get('volume', 0)).replace(',', '')) # 万元
             
             if abs(premium) > PREMIUM_THRESHOLD and (amount >= MIN_SHARE or volume >= MIN_TURNOVER):
-                if ONLY_OPEN and not is_open:
-                    continue
                 
                 results.append({
                     'fund_id': fund_id,
