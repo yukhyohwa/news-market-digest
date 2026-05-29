@@ -25,12 +25,17 @@ def translate_articles(articles):
             should_translate = False
             
             if title:
-                # If contains non-ASCII (Chinese, Accented characters like in French)
-                if any(ord(c) > 127 for c in title):
-                    should_translate = True
-                # If target is English but source source_name is lefigaro (French), we should translate
-                elif TARGET_LANGUAGE == 'en' and article.get('source_name') == 'lefigaro':
-                    should_translate = True
+                if TARGET_LANGUAGE == 'zh-CN':
+                    # 如果目标语言是中文，且标题中包含英文字母，则进行翻译
+                    if re.search(r'[a-zA-Z]', title):
+                        should_translate = True
+                else:
+                    # If contains non-ASCII (Chinese, Accented characters like in French)
+                    if any(ord(c) > 127 for c in title):
+                        should_translate = True
+                    # If target is English but source source_name is lefigaro (French), we should translate
+                    elif TARGET_LANGUAGE == 'en' and article.get('source_name') == 'lefigaro':
+                        should_translate = True
                 
             if should_translate:
                 new_article['translated_title'] = translator.translate(title)
