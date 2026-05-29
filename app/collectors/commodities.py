@@ -3,7 +3,7 @@ from app.core.db import save_data
 
 def fetch_commodities():
     print("Fetching Commodities from Yahoo Finance...")
-    tickers = ['GC=F', 'SI=F', 'BZ=F']
+    tickers = ['GC=F', 'BZ=F']
     results = []
 
     try:
@@ -24,7 +24,6 @@ def fetch_commodities():
             
             name_map = {
                 'GC=F': 'Gold', 
-                'SI=F': 'Silver',
                 'BZ=F': 'Brent Crude'
             }
             name = name_map.get(tick, tick)
