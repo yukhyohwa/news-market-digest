@@ -71,16 +71,30 @@ def fetch_a_share_arbitrage():
                 price = float(price_str)
                 choose_price = float(choose_price_str)
                 
+                # Filter out terminated or failed deals
+                exclude_keywords = ['终止', '告吹', '取消', '失败', '停止', '暂缓']
+                if any(kw in descr for kw in exclude_keywords) or any(kw in stock_nm for kw in exclude_keywords):
+                    continue
+
                 # CRITICAL FILTER: Price < Cash Option Price (现价 < 现金权益价)
                 if price < choose_price:
-                    results.append({
-                        'stock_id': stock_id,
-                        'stock_name': stock_nm,
-                        'price': price,
-                        'choose_price': choose_price,
-                        'type_cd': type_cd,
-                        'descr': descr
-                    })
+                    # Calculate absolute yield as a proxy for annualized if time is unknown
+                    yield_pct = (choose_price - price) / price * 100
+                    
+                    from config.settings import STRATEGY_CONFIG
+                    min_yield = STRATEGY_CONFIG.get('a_share', {}).get('min_annualized_yield', 0)
+                    
+                    if yield_pct >= min_yield:
+                        results.append({
+                            'stock_id': stock_id,
+                            'stock_name': stock_nm,
+                            'price': price,
+                            'choose_price': choose_price,
+                            'yield_pct': round(yield_pct, 2),
+                            'type_cd': type_cd,
+                            'descr': descr
+                        })
+
             except (ValueError, TypeError):
                 continue
                 

@@ -76,12 +76,20 @@ def init_db():
             stock_name TEXT,
             price REAL,
             choose_price REAL,
+            yield_pct REAL,
             type_cd TEXT,
             descr TEXT,
             date TEXT,
             timestamp DATETIME
         )
     ''')
+    
+    # Simple migration for existing stock_arbitrage table missing 'yield_pct' column
+    try:
+        cursor.execute("SELECT yield_pct FROM stock_arbitrage LIMIT 1")
+    except sqlite3.OperationalError:
+        print("[DB] Adding 'yield_pct' column to stock_arbitrage table...")
+        cursor.execute("ALTER TABLE stock_arbitrage ADD COLUMN yield_pct REAL DEFAULT 0")
     
     # Forex Rates Table
     cursor.execute('''
@@ -217,6 +225,18 @@ def init_db():
         )
     ''')
 
+    # Fund OTC Limits Table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS fund_otc_limits (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            fund_id TEXT,
+            fund_name TEXT,
+            nav REAL,
+            apply_status TEXT,
+            date TEXT,
+            timestamp DATETIME
+        )
+    ''')
     
     conn.commit()
     conn.close()

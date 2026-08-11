@@ -108,11 +108,14 @@ def generate_unified_report(categorized_news=None, include_arb=True):
             for r in rows:
                 price = r[3]
                 cash_price = r[4]
+                yield_pct = r[5]
+                type_cd = r[6]
+                descr = r[7]
+                
                 if price and price > 0:
-                    if cash_price >= price * 1.03:
-                        display_rows.append([r[1], r[2], f"{price:.2f}", f"{cash_price:.2f}", r[5], r[6]])
+                    display_rows.append([r[1], r[2], f"{price:.2f}", f"{cash_price:.2f}", f"{yield_pct:.2f}%" if yield_pct is not None else "-", type_cd, descr])
             if display_rows:
-                report_content += format_table(display_rows, ['Code', 'Name', 'Price', 'Cash Price', 'Type', 'Description'], ['left', 'left', 'right', 'right', 'left', 'left']) + "\n\n"
+                report_content += format_table(display_rows, ['Code', 'Name', 'Price', 'Cash Price', 'Yield', 'Type', 'Description'], ['left', 'left', 'right', 'right', 'right', 'left', 'left']) + "\n\n"
             else:
                 report_content += "*No A-share arbitrage opportunities found today.*\n\n"
         else:
@@ -169,6 +172,11 @@ def generate_unified_report(categorized_news=None, include_arb=True):
                     continue
                     
                 dist_status = r[11] if len(r) > 11 else ""
+                
+                # Div Qual Filter
+                if dist_status and 'Cutting' in dist_status:
+                    continue
+                    
                 display_rows.append([ticker, r[2], f"{discount:.2f}%", f"{diff:.2f}%", f"{zscore:.2f}", f"${vol_usd/1000:.0f}K", dist_status])
             
             if display_rows:
@@ -177,6 +185,15 @@ def generate_unified_report(categorized_news=None, include_arb=True):
                 report_content += "*No CEF arbitrage opportunities meeting the volume criteria found today.*\n\n"
         else:
             report_content += "*No CEF arbitrage opportunities found today.*\n\n"
+
+        # 12. QDII OTC Fund Limits Monitor
+        report_content += "### 12. QDII OTC Fund Limits Monitor\n"
+        rows, cols = fetch_daily_data('fund_otc_limits', today)
+        if rows:
+            display_rows = [[r[1], r[2], f"{r[3]:.4f}", r[4]] for r in rows]
+            report_content += format_table(display_rows, ['Fund Code', 'Fund Name', 'NAV', 'Status'], ['left', 'left', 'right', 'left']) + "\n\n"
+        else:
+            report_content += "*No OTC Fund status data available today.*\n\n"
 
     # 2. News Section
     if categorized_news:
