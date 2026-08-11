@@ -5,6 +5,20 @@ from app.core.arb_reporter import fetch_daily_data, fetch_latest_data, format_li
 from app.core.processor import truncate_summary
 from config.settings import STRATEGY_CONFIG
 
+import re
+
+def extract_quota(status_str):
+    if not status_str:
+        return 'Unknown'
+    match = re.search(r'上限([\d\.]+)元', status_str)
+    if match:
+        return match.group(1)
+    if '暂停' in status_str:
+        return 'Suspended'
+    if '开放' in status_str:
+        return 'Open'
+    return status_str
+
 def generate_unified_report(categorized_news=None, include_arb=True):
     """
     Combines News Summary and Market Arbitrage into a single report.
@@ -55,10 +69,13 @@ def generate_unified_report(categorized_news=None, include_arb=True):
                 prev_status = get_previous_otc_status(fund_code, today)
                 # Only show if status has changed
                 if prev_status is None or status != prev_status:
-                    display_rows.append([fund_code, fund_name, f"{nav:.4f}", f"{status} (was: {prev_status or 'Unknown'})"])
+                    old_quota = extract_quota(prev_status)
+                    new_quota = extract_quota(status)
+                    diff_str = f"{old_quota} -> {new_quota}"
+                    display_rows.append([fund_code, fund_name, f"{nav:.4f}", status, diff_str])
                     
             if display_rows:
-                report_content += format_table(display_rows, ['Fund Code', 'Fund Name', 'NAV', 'Status Change'], ['left', 'left', 'right', 'left']) + "\n\n"
+                report_content += format_table(display_rows, ['Fund Code', 'Fund Name', 'NAV', 'Status', 'Quota Diff'], ['left', 'left', 'right', 'left', 'left']) + "\n\n"
             else:
                 report_content += "*No limit changes detected since last week.*\n\n"
         else:
