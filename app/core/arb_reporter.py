@@ -20,6 +20,27 @@ def fetch_daily_data(table_name, date_str, columns="*"):
     finally:
         conn.close()
 
+def get_previous_otc_status(fund_id, today_str):
+    """Fetches the most recent OTC status for a fund before today, ideally 7 days ago."""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    try:
+        # Find the latest date before today
+        cursor.execute("SELECT apply_status FROM fund_otc_limits WHERE fund_id = ? AND date <= date(?, '-7 days') ORDER BY date DESC LIMIT 1", (fund_id, today_str))
+        row = cursor.fetchone()
+        if row: return row[0]
+        
+        # If no data from 7+ days ago, just get the oldest/latest available before today
+        cursor.execute("SELECT apply_status FROM fund_otc_limits WHERE fund_id = ? AND date < ? ORDER BY date DESC LIMIT 1", (fund_id, today_str))
+        row = cursor.fetchone()
+        if row: return row[0]
+        return None
+    except sqlite3.Error as e:
+        print(f"Error reading historical OTC status: {e}")
+        return None
+    finally:
+        conn.close()
+
 def fetch_latest_data(table_name, columns="*", limit=50):
     """Fetches the latest available records from a table regardless of date."""
     conn = get_db_connection()

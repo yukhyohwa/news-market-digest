@@ -1,7 +1,7 @@
 
 import os
 import datetime
-from app.core.arb_reporter import fetch_daily_data, fetch_latest_data, format_liq, format_table
+from app.core.arb_reporter import fetch_daily_data, fetch_latest_data, format_liq, format_table, get_previous_otc_status
 from app.core.processor import truncate_summary
 from config.settings import STRATEGY_CONFIG
 
@@ -29,26 +29,69 @@ def generate_unified_report(categorized_news=None, include_arb=True):
         else:
             report_content += "*No market index data or chart available.*\n\n"
 
-        # 2. Forex Rates
-        report_content += "### 2. Forex Rates\n"
+        # 2. Commodities
+        report_content += "### 2. Commodities\n"
+        commodities_chart_path = os.path.join(output_dir, 'images', f'commodities_{today}.png')
+        if os.path.exists(commodities_chart_path):
+            report_content += f"![Commodities 30-Day Trend](images/commodities_{today}.png)\n\n"
+        else:
+            report_content += "*No commodities chart available.*\n\n"
+
+        # 3. Forex Rates
+        report_content += "### 3. Forex Rates\n"
         forex_chart_path = os.path.join(output_dir, 'images', f'forex_rates_{today}.png')
         if os.path.exists(forex_chart_path):
             report_content += f"![Forex Rates 30-Day Trend](images/forex_rates_{today}.png)\n\n"
         else:
             report_content += "*No forex chart available.*\n\n"
 
-        # 3. Commodities
-        rows, cols, l_date = fetch_latest_data('commodities')
-        report_content += "### 3. Commodities\n"
+        # 4. QDII OTC Fund Limits Monitor
+        report_content += "### 4. QDII OTC Fund Limits Monitor\n"
+        rows, cols = fetch_daily_data('fund_otc_limits', today)
         if rows:
-            if l_date != today: report_content += f"> *Showing latest data from {l_date}*\n\n"
-            display_rows = [[r[2], f"{r[3]:.2f}", f"{r[5]:.2f}%"] for r in rows]
-            report_content += format_table(display_rows, ['Name', 'Price', 'Change %'], ['left', 'right', 'right']) + "\n\n"
+            display_rows = []
+            for r in rows:
+                fund_code, fund_name, nav, status = r[1], r[2], r[3], r[4]
+                prev_status = get_previous_otc_status(fund_code, today)
+                # Only show if status has changed
+                if prev_status is None or status != prev_status:
+                    display_rows.append([fund_code, fund_name, f"{nav:.4f}", f"{status} (was: {prev_status or 'Unknown'})"])
+                    
+            if display_rows:
+                report_content += format_table(display_rows, ['Fund Code', 'Fund Name', 'NAV', 'Status Change'], ['left', 'left', 'right', 'left']) + "\n\n"
+            else:
+                report_content += "*No limit changes detected since last week.*\n\n"
         else:
-            report_content += "*No commodity data available.*\n\n"
+            report_content += "*No OTC Fund status data available today.*\n\n"
 
-        # 4. LOF/IOF
-        report_content += f"### 4. LOF/IOF Funds (|Premium| > {STRATEGY_CONFIG['lof']['min_premium_rate']}%)\n"
+        # 5. Bond Issuance
+        report_content += "### 5. Bond Issuance & Listing\n"
+        rows, cols = fetch_daily_data('bond_issuance', today)
+        if rows:
+            display_rows = [[r[1], r[2], r[3], r[4], r[5]] for r in rows]
+            report_content += format_table(display_rows, ['Code', 'Name', 'Sub Date', 'List Date', 'Details'], ['left', 'left', 'left', 'left', 'left']) + "\n\n"
+        else:
+            report_content += "*No new bond events for today.*\n\n"
+
+        # 6. Cbond
+        report_content += f"### 6. Cbond Double Low (< {STRATEGY_CONFIG['cbond']['max_dblow']})\n"
+        rows, cols = fetch_daily_data('cbond_double_low', today)
+        if rows:
+            display_rows = [[r[1], r[2], f"{r[3]:.2f}", f"{r[4]:.2f}%", f"{r[5]:.2f}", f"{r[6]:.2f}y"] for r in rows]
+            report_content += format_table(display_rows, ['Code', 'Name', 'Price', 'Premium', 'LowIndex', 'Rem.Y'], ['left', 'left', 'right', 'right', 'right', 'right']) + "\n\n"
+        else:
+            report_content += "*No Cbond double-low opportunities today.*\n\n"
+
+        rows, cols = fetch_daily_data('cbond_putback', today)
+        report_content += f"### 7. Cbond Put-back Opportunity (< {STRATEGY_CONFIG['cbond']['max_putback_price']})\n"
+        if rows:
+            display_rows = [[r[1], r[2], f"{r[3]:.2f}", f"{r[4]:.2f}%", r[6] or "-", f"{r[7]:.2f}y"] for r in rows]
+            report_content += format_table(display_rows, ['Code', 'Name', 'Price', 'Premium', 'Put Date', 'Rem.Y'], ['left', 'left', 'right', 'right', 'left', 'right']) + "\n\n"
+        else:
+            report_content += "*No Cbond put-back opportunities found today.*\n\n"
+
+        # 8. LOF/IOF
+        report_content += f"### 8. LOF/IOF Funds (|Premium| > {STRATEGY_CONFIG['lof']['min_premium_rate']}%)\n"
         rows, cols = fetch_daily_data('lof_funds', today, "fund_id, fund_name, price, premium_rate, amount, volume, apply_status")
         if rows:
             display_rows = []
@@ -67,8 +110,8 @@ def generate_unified_report(categorized_news=None, include_arb=True):
         else:
             report_content += "*No arbitrage opportunities found today.*\n\n"
 
-        # 5. QDII
-        report_content += f"### 5. QDII Arbitrage (|Premium| > {STRATEGY_CONFIG['qdii']['min_premium_rate']}%)\n"
+        # 9. QDII
+        report_content += f"### 9. QDII Arbitrage (|Premium| > {STRATEGY_CONFIG['qdii']['min_premium_rate']}%)\n"
         rows, cols = fetch_daily_data('qdii_arbitrage', today)
         if rows:
             display_rows = []
@@ -90,9 +133,9 @@ def generate_unified_report(categorized_news=None, include_arb=True):
         else:
             report_content += "*No arbitrage opportunities found today.*\n\n"
 
-        # 6. A-share
+        # 10. A-share
         min_a_share_yield = STRATEGY_CONFIG.get('a_share', {}).get('min_annualized_yield', 7.0)
-        report_content += f"### 6. A-share Arbitrage (Yield >= {min_a_share_yield}%)\n"
+        report_content += f"### 10. A-share Arbitrage (Yield >= {min_a_share_yield}%)\n"
         rows, cols = fetch_daily_data('stock_arbitrage', today)
         if rows:
             display_rows = []
@@ -113,34 +156,8 @@ def generate_unified_report(categorized_news=None, include_arb=True):
         else:
             report_content += "*No A-share arbitrage opportunities found today.*\n\n"
 
-        # 7. Bond Issuance
-        report_content += "### 7. Bond Issuance & Listing\n"
-        rows, cols = fetch_daily_data('bond_issuance', today)
-        if rows:
-            display_rows = [[r[1], r[2], r[3], r[4], r[5]] for r in rows]
-            report_content += format_table(display_rows, ['Code', 'Name', 'Sub Date', 'List Date', 'Details'], ['left', 'left', 'left', 'left', 'left']) + "\n\n"
-        else:
-            report_content += "*No new bond events for today.*\n\n"
-
-        # 8/9. Cbond
-        report_content += f"### 8. Cbond Double Low (< {STRATEGY_CONFIG['cbond']['max_dblow']})\n"
-        rows, cols = fetch_daily_data('cbond_double_low', today)
-        if rows:
-            display_rows = [[r[1], r[2], f"{r[3]:.2f}", f"{r[4]:.2f}%", f"{r[5]:.2f}", f"{r[6]:.2f}y"] for r in rows]
-            report_content += format_table(display_rows, ['Code', 'Name', 'Price', 'Premium', 'LowIndex', 'Rem.Y'], ['left', 'left', 'right', 'right', 'right', 'right']) + "\n\n"
-        else:
-            report_content += "*No Cbond double-low opportunities today.*\n\n"
-
-        rows, cols = fetch_daily_data('cbond_putback', today)
-        report_content += f"### 9. Cbond Put-back Opportunity (< {STRATEGY_CONFIG['cbond']['max_putback_price']})\n"
-        if rows:
-            display_rows = [[r[1], r[2], f"{r[3]:.2f}", f"{r[4]:.2f}%", r[6] or "-", f"{r[7]:.2f}y"] for r in rows]
-            report_content += format_table(display_rows, ['Code', 'Name', 'Price', 'Premium', 'Put Date', 'Rem.Y'], ['left', 'left', 'right', 'right', 'left', 'right']) + "\n\n"
-        else:
-            report_content += "*No Cbond put-back opportunities found today.*\n\n"
-
-        # 10. SPAC
-        report_content += "### 10. SPAC Arbitrage\n"
+        # 11. SPAC
+        report_content += "### 11. SPAC Arbitrage\n"
         rows, cols = fetch_daily_data('spac_arbitrage', today)
         if rows:
             display_rows = [[r[1], r[2], r[3], f"{r[4]:.2f}", f"{r[5]:.2f}", f"{r[6]:.2f}%", str(r[7])] for r in rows]
@@ -148,9 +165,9 @@ def generate_unified_report(categorized_news=None, include_arb=True):
         else:
             report_content += "*No SPAC arbitrage opportunities found today.*\n\n"
 
-        # 11. CEF
+        # 12. CEF
         min_vol_k = STRATEGY_CONFIG['cef']['min_volume_usd'] // 1000
-        report_content += f"### 11. CEF Arbitrage (Disc < {STRATEGY_CONFIG['cef']['min_discount']}%, Vol USD >= {min_vol_k:,}K)\n"
+        report_content += f"### 12. CEF Arbitrage (Disc < {STRATEGY_CONFIG['cef']['min_discount']}%, Vol USD >= {min_vol_k:,}K)\n"
         rows, cols = fetch_daily_data('cef_arbitrage', today)
         if rows:
             display_rows = []
@@ -177,15 +194,6 @@ def generate_unified_report(categorized_news=None, include_arb=True):
                 report_content += "*No CEF arbitrage opportunities meeting the volume criteria found today.*\n\n"
         else:
             report_content += "*No CEF arbitrage opportunities found today.*\n\n"
-
-        # 12. QDII OTC Fund Limits Monitor
-        report_content += "### 12. QDII OTC Fund Limits Monitor\n"
-        rows, cols = fetch_daily_data('fund_otc_limits', today)
-        if rows:
-            display_rows = [[r[1], r[2], f"{r[3]:.4f}", r[4]] for r in rows]
-            report_content += format_table(display_rows, ['Fund Code', 'Fund Name', 'NAV', 'Status'], ['left', 'left', 'right', 'left']) + "\n\n"
-        else:
-            report_content += "*No OTC Fund status data available today.*\n\n"
 
     # 2. News Section
     if categorized_news:
