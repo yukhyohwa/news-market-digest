@@ -9,9 +9,7 @@ from app.core.db import save_data, OUTPUT_DIR
 TICKERS = {
     '000001.SS': {'name': 'Shanghai Composite', 'symbol_short': '000001'},
     '^GSPC': {'name': 'S&P 500', 'symbol_short': 'SPX'},
-    '^N225': {'name': 'Nikkei 225', 'symbol_short': 'N225'},
     '^NDX': {'name': 'NASDAQ 100', 'symbol_short': 'NDX'},
-    '^KS11': {'name': 'KOSPI', 'symbol_short': 'KS11'},
     '^TWII': {'name': 'TAIEX', 'symbol_short': 'TWII'}
 }
 
