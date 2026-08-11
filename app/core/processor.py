@@ -132,20 +132,14 @@ def filter_articles(articles, days=None, start_date=None, end_date=None):
     return filtered_articles
 
 def truncate_summary(text, word_limit=100):
-    """Truncates text to a specified word limit while attempting to keep sentences whole."""
+    """Truncates text to a specified character limit (suitable for Chinese)."""
     if not text:
         return ""
     
-    words = text.split()
-    if len(words) <= word_limit:
+    if len(text) <= word_limit:
         return text
-    
-    # Simple whitespace split to get the first N words
-    truncated = " ".join(words[:word_limit])
-    
-    # Try to end gracefully at the last punctuation mark before the limit if possible
-    # (Optional polish: can be added if needed, but simple join is usually fine)
-    return truncated + "..."
+        
+    return text[:word_limit] + "..."
 
 def deduplicate_and_merge_articles(articles):
     """Identifies and merges similar articles based on topics."""
