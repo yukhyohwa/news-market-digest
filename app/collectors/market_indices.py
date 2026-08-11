@@ -1,12 +1,11 @@
+import os
 import yfinance as yf
-from app.core.db import save_data
+import matplotlib.pyplot as plt
+import pandas as pd
+from app.core.db import save_data, OUTPUT_DIR
 
 # Configuration
 # Yahoo Finance Tickers
-# Shanghai Composite: 000001.SS
-# S&P 500: ^GSPC
-# Nikkei 225: ^N225
-# NASDAQ 100: ^NDX
 TICKERS = {
     '000001.SS': {'name': 'Shanghai Composite', 'symbol_short': '000001'},
     '^GSPC': {'name': 'S&P 500', 'symbol_short': 'SPX'},
@@ -15,45 +14,37 @@ TICKERS = {
 }
 
 def fetch_market_indices():
-    print("Fetching Market Indices from Yahoo Finance...")
+    print("Fetching Market Indices from Yahoo Finance and generating 30-day chart...")
     results = []
+    
+    # For charting
+    history_data = {}
 
     try:
         for ticker_symbol, info in TICKERS.items():
             ticker = yf.Ticker(ticker_symbol)
             
-            # fast_info provides real-time/delayed latest price and previous close
-            # Note: For some indices fast_info might be missing,fallback to history if needed
-            price = ticker.fast_info.last_price
-            prev_close = ticker.fast_info.previous_close
-            
-            if price is None:
-                # Fallback to history (1 day) if fast_info fails
-                hist = ticker.history(period="1d")
-                if not hist.empty:
-                    price = hist['Close'].iloc[-1]
-                    # Attempt to get prev close from info or calculate? 
-                    # history includes Open/High/Low/Close. 
-                    # If market is open, 'Close' might be current.
-                    # We can try period='5d' to get previous close
-                    hist5 = ticker.history(period="5d")
-                    if len(hist5) >= 2:
-                        prev_close = hist5['Close'].iloc[-2]
-                    else:
-                        prev_close = price # Fallback
+            # Fetch 1 month history for charting
+            hist = ticker.history(period="1mo")
+            if not hist.empty:
+                # Store closing prices for chart
+                history_data[info['name']] = hist['Close']
+                
+                # Latest info for DB
+                price = hist['Close'].iloc[-1]
+                if len(hist) >= 2:
+                    prev_close = hist['Close'].iloc[-2]
                 else:
-                    print(f"Warning: No data for {ticker_symbol}")
-                    continue
-            
-             # Handle cases where prev_close might still be None or 0
-            if not prev_close:
-                 prev_close = price
+                    prev_close = price
+            else:
+                print(f"Warning: No data for {ticker_symbol}")
+                continue
 
             change = price - prev_close
             change_pct = (change / prev_close) * 100 if prev_close else 0.0
             
             record = {
-                'symbol': info['symbol_short'], # Keep original short symbols for consistency
+                'symbol': info['symbol_short'],
                 'name': info['name'],
                 'price': round(float(price), 2),
                 'change': round(float(change), 2),
@@ -62,6 +53,47 @@ def fetch_market_indices():
             }
             results.append(record)
             print(f"Fetched {info['name']} ({ticker_symbol}): Price={price:.2f}, PrevClose={prev_close:.2f}")
+
+        # Generate Chart
+        if history_data:
+            plt.figure(figsize=(10, 5))
+            
+            for name, series in history_data.items():
+                if len(series) > 0:
+                    # Normalize to the first day
+                    first_price = series.iloc[0]
+                    normalized = (series / first_price - 1) * 100
+                    
+                    # Plot
+                    line, = plt.plot(normalized.index, normalized.values, label=name, marker='.')
+                    
+                    # Add label at the end
+                    last_date = normalized.index[-1]
+                    last_val = normalized.iloc[-1]
+                    abs_val = series.iloc[-1]
+                    
+                    plt.annotate(f"{abs_val:.2f}",
+                                 xy=(last_date, last_val),
+                                 xytext=(5, 0),
+                                 textcoords="offset points",
+                                 color=line.get_color(),
+                                 va='center')
+                                 
+            plt.title('Global Market Indices - 30 Day Growth Rate (%)')
+            plt.ylabel('Growth Rate (%)')
+            plt.grid(True, alpha=0.3)
+            plt.legend(loc='upper left')
+            
+            # Format x-axis
+            plt.gcf().autofmt_xdate()
+            plt.tight_layout()
+            
+            # Save chart
+            chart_path = os.path.join(OUTPUT_DIR, 'market_indices_30d.png')
+            os.makedirs(OUTPUT_DIR, exist_ok=True)
+            plt.savefig(chart_path, dpi=120)
+            plt.close()
+            print(f"Chart saved to {chart_path}")
 
     except Exception as e:
         print(f"Error fetching indices: {e}")

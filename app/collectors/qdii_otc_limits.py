@@ -7,7 +7,7 @@ def fetch_otc_fund_status(fund_code):
     """
     Fetch the purchase status (SGZT) of an OTC fund using EastMoney Mobile API.
     """
-    url = f'https://fundmobapi.eastmoney.com/FundMNewApi/FundMNBaseInfo?FCODE={fund_code}&product=EFund&deviceid=123456&plat=Iphone&version=6.0.0'
+    url = f'https://fundmobapi.eastmoney.com/FundMApi/FundBaseTypeInformation.ashx?FCODE={fund_code}&deviceid=1&plat=Iphone&product=EFund&version=6.0.0'
     headers = {
         'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X)'
     }

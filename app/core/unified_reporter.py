@@ -22,14 +22,12 @@ def generate_unified_report(categorized_news=None, include_arb=True):
         report_content += "## 💰 Market Arbitrage & Opportunities\n\n"
         
         # 1. Market Indices (Global)
-        rows, cols, l_date = fetch_latest_data('market_indices')
         report_content += "### 1. Market Indices (Global)\n"
-        if rows:
-            if l_date != today: report_content += f"> *Showing latest data from {l_date}*\n\n"
-            display_rows = [[r[2], f"{r[3]:.2f}", f"{r[5]:.2f}%"] for r in rows]
-            report_content += format_table(display_rows, ['Index', 'Price', 'Change %'], ['left', 'right', 'right']) + "\n\n"
+        chart_path = os.path.join(output_dir, 'market_indices_30d.png')
+        if os.path.exists(chart_path):
+            report_content += "![Market Indices 30-Day Trend](market_indices_30d.png)\n\n"
         else:
-            report_content += "*No market index data available.*\n\n"
+            report_content += "*No market index data or chart available.*\n\n"
 
         # 2. Forex Rates
         rows, cols, l_date = fetch_latest_data('forex_rates')
@@ -101,19 +99,21 @@ def generate_unified_report(categorized_news=None, include_arb=True):
             report_content += "*No arbitrage opportunities found today.*\n\n"
 
         # 6. A-share
-        report_content += "### 6. A-share Arbitrage\n"
+        min_a_share_yield = STRATEGY_CONFIG.get('a_share', {}).get('min_annualized_yield', 7.0)
+        report_content += f"### 6. A-share Arbitrage (Yield >= {min_a_share_yield}%)\n"
         rows, cols = fetch_daily_data('stock_arbitrage', today)
         if rows:
             display_rows = []
             for r in rows:
-                price = r[3]
-                cash_price = r[4]
-                yield_pct = r[5]
-                type_cd = r[6]
-                descr = r[7]
+                row_dict = dict(zip(cols, r))
+                price = row_dict.get('price')
+                cash_price = row_dict.get('choose_price')
+                yield_pct = row_dict.get('yield_pct')
+                type_cd = row_dict.get('type_cd', '-')
+                descr = row_dict.get('descr', '')
                 
                 if price and price > 0:
-                    display_rows.append([r[1], r[2], f"{price:.2f}", f"{cash_price:.2f}", f"{yield_pct:.2f}%" if yield_pct is not None else "-", type_cd, descr])
+                    display_rows.append([row_dict.get('stock_id'), row_dict.get('stock_name'), f"{price:.2f}", f"{cash_price:.2f}", f"{yield_pct:.2f}%" if yield_pct is not None else "-", type_cd, descr])
             if display_rows:
                 report_content += format_table(display_rows, ['Code', 'Name', 'Price', 'Cash Price', 'Yield', 'Type', 'Description'], ['left', 'left', 'right', 'right', 'right', 'left', 'left']) + "\n\n"
             else:

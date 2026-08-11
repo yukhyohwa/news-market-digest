@@ -75,6 +75,8 @@ def fetch_a_share_arbitrage():
                 exclude_keywords = ['终止', '告吹', '取消', '失败', '停止', '暂缓']
                 if any(kw in descr for kw in exclude_keywords) or any(kw in stock_nm for kw in exclude_keywords):
                     continue
+                if stock_id == '301073':
+                    continue
 
                 # CRITICAL FILTER: Price < Cash Option Price (现价 < 现金权益价)
                 if price < choose_price:
