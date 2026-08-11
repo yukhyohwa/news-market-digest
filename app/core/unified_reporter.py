@@ -23,27 +23,19 @@ def generate_unified_report(categorized_news=None, include_arb=True):
         
         # 1. Market Indices (Global)
         report_content += "### 1. Market Indices (Global)\n"
-        chart_path = os.path.join(output_dir, 'market_indices_30d.png')
-        if os.path.exists(chart_path):
-            report_content += "![Market Indices 30-Day Trend](market_indices_30d.png)\n\n"
+        indices_chart_path = os.path.join(output_dir, 'images', f'market_indices_{today}.png')
+        if os.path.exists(indices_chart_path):
+            report_content += f"![Market Indices 30-Day Trend](images/market_indices_{today}.png)\n\n"
         else:
             report_content += "*No market index data or chart available.*\n\n"
 
         # 2. Forex Rates
-        rows, cols, l_date = fetch_latest_data('forex_rates')
-        report_content += "### 2. Forex Rates (BOC)\n"
-        if rows:
-            if l_date != today: report_content += f"> *Showing latest data from {l_date}*\n\n"
-            forex_data = {r[1]: {'buy': f"{r[4]:.4f}", 'sell': f"{r[5]:.4f}"} for r in rows}
-            available_currencies = [r[1] for r in rows]
-            priority = ['美元', '欧元', '日元', '英镑']
-            sorted_currencies = [p for p in priority if p in available_currencies] + [c for c in available_currencies if c not in priority]
-            header = ['Rate'] + sorted_currencies
-            row_buy = ['Buy'] + [forex_data[c]['buy'] for c in sorted_currencies]
-            row_sell = ['Sell'] + [forex_data[c]['sell'] for c in sorted_currencies]
-            report_content += format_table([row_sell, row_buy], header, ['left'] + ['right'] * len(sorted_currencies)) + "\n\n"
+        report_content += "### 2. Forex Rates\n"
+        forex_chart_path = os.path.join(output_dir, 'images', f'forex_rates_{today}.png')
+        if os.path.exists(forex_chart_path):
+            report_content += f"![Forex Rates 30-Day Trend](images/forex_rates_{today}.png)\n\n"
         else:
-            report_content += "*No forex data available.*\n\n"
+            report_content += "*No forex chart available.*\n\n"
 
         # 3. Commodities
         rows, cols, l_date = fetch_latest_data('commodities')

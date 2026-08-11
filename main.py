@@ -131,6 +131,32 @@ def main():
         
     print(f"\nTotal Time: {time.time() - start_time:.2f} seconds")
     print("===========================================")
+    
+    # Cleanup old images
+    cleanup_old_images(days=30)
+
+def cleanup_old_images(days=30):
+    """Deletes images older than a specified number of days from output/images."""
+    images_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'output', 'images')
+    if not os.path.exists(images_dir):
+        return
+        
+    now = time.time()
+    count = 0
+    import os
+    for filename in os.listdir(images_dir):
+        if filename.endswith(".png"):
+            file_path = os.path.join(images_dir, filename)
+            # If older than `days`
+            if os.stat(file_path).st_mtime < now - days * 86400:
+                try:
+                    os.remove(file_path)
+                    count += 1
+                except Exception as e:
+                    print(f"Failed to delete {filename}: {e}")
+                    
+    if count > 0:
+        print(f"[CLEANUP] Deleted {count} old image(s) from {images_dir}.")
 
 if __name__ == "__main__":
     main()

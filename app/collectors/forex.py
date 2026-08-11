@@ -1,10 +1,15 @@
 
+import os
+import yfinance as yf
+import matplotlib.pyplot as plt
+import pandas as pd
+from datetime import datetime
 import requests
 from bs4 import BeautifulSoup
 import time
 import random
 import re
-from app.core.db import save_data
+from app.core.db import save_data, OUTPUT_DIR
 
 # Configurations
 CURRENCY_MAP = {
@@ -14,6 +19,72 @@ CURRENCY_MAP = {
     'gbp': '英镑'
 }
 TARGET_CURRENCIES = list(CURRENCY_MAP.values())
+
+YF_FOREX_TICKERS = {
+    'CNY=X': 'USD/CNY',
+    'EURCNY=X': 'EUR/CNY',
+    'JPYCNY=X': 'JPY/CNY',
+    'GBPCNY=X': 'GBP/CNY'
+}
+
+def generate_forex_chart():
+    print("Fetching Forex history from Yahoo Finance and generating 30-day chart...")
+    history_data = {}
+    
+    try:
+        for ticker_symbol, name in YF_FOREX_TICKERS.items():
+            ticker = yf.Ticker(ticker_symbol)
+            hist = ticker.history(period="1mo")
+            if not hist.empty:
+                history_data[name] = hist['Close']
+            else:
+                print(f"Warning: No data for {ticker_symbol}")
+                
+        if history_data:
+            plt.figure(figsize=(10, 5))
+            
+            for name, series in history_data.items():
+                if len(series) > 0:
+                    # Normalize to the first day
+                    first_price = series.iloc[0]
+                    normalized = (series / first_price - 1) * 100
+                    
+                    # Plot
+                    line, = plt.plot(normalized.index, normalized.values, label=name, marker='.')
+                    
+                    # Add label at the end
+                    last_date = normalized.index[-1]
+                    last_val = normalized.iloc[-1]
+                    abs_val = series.iloc[-1]
+                    
+                    plt.annotate(f"{abs_val:.4f}",
+                                 xy=(last_date, last_val),
+                                 xytext=(5, 0),
+                                 textcoords="offset points",
+                                 color=line.get_color(),
+                                 va='center')
+                                 
+            plt.title('Global Forex Rates - 30 Day Growth Rate (%)')
+            plt.ylabel('Growth Rate (%)')
+            plt.grid(True, alpha=0.3)
+            plt.legend(loc='upper left')
+            
+            # Format x-axis
+            plt.gcf().autofmt_xdate()
+            plt.tight_layout()
+            
+            # Save chart
+            today_str = datetime.now().strftime("%Y-%m-%d")
+            images_dir = os.path.join(OUTPUT_DIR, 'images')
+            os.makedirs(images_dir, exist_ok=True)
+            chart_path = os.path.join(images_dir, f'forex_rates_{today_str}.png')
+            
+            plt.savefig(chart_path, dpi=120)
+            plt.close()
+            print(f"Forex chart saved to {chart_path}")
+            
+    except Exception as e:
+        print(f"Error generating forex chart: {e}")
 
 def fetch_boc_rates():
     url = "https://www.boc.cn/sourcedb/whpj/"
@@ -121,6 +192,8 @@ def main():
         print("Forex Task Complete.")
     else:
         print("No data found.")
+        
+    generate_forex_chart()
 
 if __name__ == "__main__":
     main()

@@ -89,8 +89,12 @@ def fetch_market_indices():
             plt.tight_layout()
             
             # Save chart
-            chart_path = os.path.join(OUTPUT_DIR, 'market_indices_30d.png')
-            os.makedirs(OUTPUT_DIR, exist_ok=True)
+            from datetime import datetime
+            today_str = datetime.now().strftime("%Y-%m-%d")
+            images_dir = os.path.join(OUTPUT_DIR, 'images')
+            os.makedirs(images_dir, exist_ok=True)
+            chart_path = os.path.join(images_dir, f'market_indices_{today_str}.png')
+            
             plt.savefig(chart_path, dpi=120)
             plt.close()
             print(f"Chart saved to {chart_path}")
