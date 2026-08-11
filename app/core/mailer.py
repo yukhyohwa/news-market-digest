@@ -1,9 +1,12 @@
 import smtplib
 import os
 import markdown
+import uuid
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from email.mime.image import MIMEImage
 from email.header import Header
+from bs4 import BeautifulSoup
 import config.settings as config
 
 def send_report_email(report_path):
@@ -42,6 +45,27 @@ def send_report_email(report_path):
 
     # 2. HTML version with Premium CSS Styling
     html_content = markdown.markdown(content, extensions=['tables', 'fenced_code'])
+    
+    # Parse HTML and embed images
+    soup = BeautifulSoup(html_content, 'html.parser')
+    for img in soup.find_all('img'):
+        src = img.get('src')
+        if src and not src.startswith('http'):
+            # It's a local file (e.g. images/xxx.png)
+            img_path = os.path.join(os.path.dirname(report_path), src)
+            if os.path.exists(img_path):
+                cid = str(uuid.uuid4())
+                img['src'] = f"cid:{cid}"
+                try:
+                    with open(img_path, 'rb') as img_file:
+                        mime_img = MIMEImage(img_file.read())
+                        mime_img.add_header('Content-ID', f'<{cid}>')
+                        mime_img.add_header('Content-Disposition', 'inline', filename=os.path.basename(img_path))
+                        message.attach(mime_img)
+                except Exception as e:
+                    print(f"!!! Mail Error: Failed to attach image {img_path}: {e}")
+                    
+    html_content = str(soup)
     
     styled_html = f"""
     <html>
