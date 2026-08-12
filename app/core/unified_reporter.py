@@ -27,13 +27,13 @@ def generate_unified_report(categorized_news=None, include_arb=True):
     output_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "output")
     os.makedirs(output_dir, exist_ok=True)
     
-    filename = os.path.join(output_dir, f"Global_Digest_{today}.md")
+    filename = os.path.join(output_dir, f"Market_Digest_{today}.md")
     
-    report_content = f"# Global News & Market Digest Report ({today})\n\n"
+    report_content = f"# Market_Digest_{today}\n\n"
     
     # 1. Arbitrage Section (from DB)
     if include_arb:
-        report_content += "## 💰 Market Arbitrage & Opportunities\n\n"
+        report_content += "## Data\n\n"
         
         # 1. Market Indices (Global)
         report_content += "### 1. Market Indices (Global)\n"
@@ -214,7 +214,7 @@ def generate_unified_report(categorized_news=None, include_arb=True):
 
     # 2. News Section
     if categorized_news:
-        report_content += "## 🌏 Global News Summary\n\n"
+        report_content += "## News\n\n"
         all_categories = list(categorized_news.keys())
         
         # Define target order
@@ -245,7 +245,20 @@ def generate_unified_report(categorized_news=None, include_arb=True):
 
     # Sources
     report_content += "## 📚 Sources\n"
-    report_content += "- **News**: TechCrunch, NY Times, BBC, Le Figaro\n"
+    
+    news_sources_set = set()
+    if categorized_news:
+        for cat, articles in categorized_news.items():
+            for article in articles:
+                for s in article.get('sources', []):
+                    if s.get('name'):
+                        news_sources_set.add(s['name'])
+                        
+    if news_sources_set:
+        report_content += f"- **News**: {', '.join(sorted(news_sources_set))}\n"
+    else:
+        report_content += "- **News**: MarketWatch, Financial Times\n"
+        
     report_content += "- **Market Data**: Yahoo Finance, Bank of China, Jisilu, Eastmoney, StockAnalysis, CEFConnect\n"
 
     with open(filename, 'w', encoding='utf-8') as f:
