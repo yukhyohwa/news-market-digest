@@ -14,7 +14,6 @@ from app.core.db import save_data, OUTPUT_DIR
 # Configurations
 CURRENCY_MAP = {
     'usd': '美元',
-    'eur': '欧元',
     'jpy': '日元',
     'gbp': '英镑'
 }
@@ -22,7 +21,6 @@ TARGET_CURRENCIES = list(CURRENCY_MAP.values())
 
 YF_FOREX_TICKERS = {
     'CNY=X': 'USD/CNY',
-    'EURCNY=X': 'EUR/CNY',
     'JPYCNY=X': 'JPY/CNY',
     'GBPCNY=X': 'GBP/CNY'
 }

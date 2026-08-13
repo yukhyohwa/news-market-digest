@@ -9,8 +9,7 @@ from app.core.db import save_data, OUTPUT_DIR
 TICKERS = {
     '000001.SS': {'name': 'Shanghai Composite', 'symbol_short': '000001'},
     '^GSPC': {'name': 'S&P 500', 'symbol_short': 'SPX'},
-    '^NDX': {'name': 'NASDAQ 100', 'symbol_short': 'NDX'},
-    '^TWII': {'name': 'TAIEX', 'symbol_short': 'TWII'}
+    '^NDX': {'name': 'NASDAQ 100', 'symbol_short': 'NDX'}
 }
 
 def fetch_market_indices():
