@@ -2,7 +2,6 @@
 import os
 import datetime
 from app.core.arb_reporter import fetch_daily_data, fetch_latest_data, format_liq, format_table, get_previous_otc_status
-from app.core.processor import truncate_summary
 from config.settings import STRATEGY_CONFIG
 
 import re
@@ -19,9 +18,9 @@ def extract_quota(status_str):
         return 'Open'
     return status_str
 
-def generate_unified_report(categorized_news=None, include_arb=True):
+def generate_unified_report(include_arb=True):
     """
-    Combines News Summary and Market Arbitrage into a single report.
+    Generate the market-only Markdown report.
     """
     today = datetime.datetime.now().strftime('%Y-%m-%d')
     output_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "output")
@@ -33,8 +32,6 @@ def generate_unified_report(categorized_news=None, include_arb=True):
     
     # 1. Arbitrage Section (from DB)
     if include_arb:
-        report_content += "## Data\n\n"
-        
         # 1. Market Indices (Global)
         report_content += "### 1. Market Indices (Global)\n"
         indices_chart_path = os.path.join(output_dir, 'images', f'market_indices_{today}.png')
@@ -51,11 +48,11 @@ def generate_unified_report(categorized_news=None, include_arb=True):
         else:
             report_content += "*No commodities chart available.*\n\n"
 
-        # 3. Forex Rates
-        report_content += "### 3. Forex Rates\n"
+        # 3. Forex Rates & US 10Y Treasury Yield
+        report_content += "### 3. Global Forex Rates & US 10Y Treasury Yield\n"
         forex_chart_path = os.path.join(output_dir, 'images', f'forex_rates_{today}.png')
         if os.path.exists(forex_chart_path):
-            report_content += f"![Forex Rates 30-Day Trend](images/forex_rates_{today}.png)\n\n"
+            report_content += f"![Global Forex Rates and US 10Y Treasury Yield 30-Day Trend](images/forex_rates_{today}.png)\n\n"
         else:
             report_content += "*No forex chart available.*\n\n"
 
@@ -212,53 +209,8 @@ def generate_unified_report(categorized_news=None, include_arb=True):
         else:
             report_content += "*No CEF arbitrage opportunities found today.*\n\n"
 
-    # 2. News Section
-    if categorized_news:
-        report_content += "## News\n\n"
-        all_categories = list(categorized_news.keys())
-        
-        # Define target order
-        target_order = ["Technology", "Economy & Finance", "Politics & International", "Energy & Environment"]
-        
-        # Build final display order
-        categories_order = [c for c in target_order if c in categorized_news]
-        # Collect any remaining categories not in target_order
-        remaining = [c for c in all_categories if c not in target_order and c != "Others"]
-        categories_order.extend(remaining)
-        
-        if "Others" in all_categories:
-            categories_order.append("Others")
-        
-        for category in categories_order:
-            articles = categorized_news.get(category, [])
-            if not articles:
-                continue
-            
-            report_content += f"### 📰 {category} ({len(articles)} items)\n\n"
-            for article in articles:
-                source_line = ", ".join([f"[{s['name']}]({s['link']})" for s in article['sources']])
-                report_content += f"#### ● {article['translated_title']} (Source: {source_line})\n"
-                if article['translated_summary']:
-                    truncated_summary = truncate_summary(article['translated_summary'], word_limit=100)
-                    report_content += f"{truncated_summary}\n"
-                report_content += "\n"
-
     # Sources
     report_content += "## 📚 Sources\n"
-    
-    news_sources_set = set()
-    if categorized_news:
-        for cat, articles in categorized_news.items():
-            for article in articles:
-                for s in article.get('sources', []):
-                    if s.get('name'):
-                        news_sources_set.add(s['name'])
-                        
-    if news_sources_set:
-        report_content += f"- **News**: {', '.join(sorted(news_sources_set))}\n"
-    else:
-        report_content += "- **News**: MarketWatch, Financial Times\n"
-        
     report_content += "- **Market Data**: Yahoo Finance, Bank of China, Jisilu, Eastmoney, StockAnalysis, CEFConnect\n"
 
     with open(filename, 'w', encoding='utf-8') as f:

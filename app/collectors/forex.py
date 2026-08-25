@@ -22,7 +22,14 @@ TARGET_CURRENCIES = list(CURRENCY_MAP.values())
 YF_FOREX_TICKERS = {
     'CNY=X': 'USD/CNY',
     'JPYCNY=X': 'JPY/CNY',
-    'GBPCNY=X': 'GBP/CNY'
+    'GBPCNY=X': 'GBP/CNY',
+    # Yahoo Finance returns ^TNX in tenths of a percentage point.
+    '^TNX': 'US 10Y Treasury Yield (%)'
+}
+
+# Convert Yahoo Finance's ^TNX quote (e.g. 42.5) to a percentage (4.25%).
+YF_SCALE_FACTORS = {
+    '^TNX': 0.1
 }
 
 def generate_forex_chart():
@@ -34,7 +41,7 @@ def generate_forex_chart():
             ticker = yf.Ticker(ticker_symbol)
             hist = ticker.history(period="1mo")
             if not hist.empty:
-                history_data[name] = hist['Close']
+                history_data[name] = hist['Close'] * YF_SCALE_FACTORS.get(ticker_symbol, 1.0)
             else:
                 print(f"Warning: No data for {ticker_symbol}")
                 
@@ -62,7 +69,7 @@ def generate_forex_chart():
                                  color=line.get_color(),
                                  va='center')
                                  
-            plt.title('Global Forex Rates - 30 Day Growth Rate (%)')
+            plt.title('Global Forex Rates & US 10Y Treasury Yield - 30 Day Growth Rate (%)')
             plt.ylabel('Growth Rate (%)')
             plt.grid(True, alpha=0.3)
             plt.legend(loc='upper left')

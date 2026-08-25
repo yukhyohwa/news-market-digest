@@ -1,107 +1,269 @@
-# News & Market Digest 🚀
+# Market Digest
 
-![Python](https://img.shields.io/badge/Python-3.x-blue)
+![Python](https://img.shields.io/badge/Python-3.11%2B-blue)
 ![License](https://img.shields.io/badge/License-MIT-green)
 ![Status](https://img.shields.io/badge/Status-Active-brightgreen)
 
-An integrated intelligence tool designed for "Global News Aggregation" and "Financial Arbitrage Monitoring." It provides a comprehensive perspective ranging from macro global insights to micro market opportunities.
+`market-digest` is a standalone market-data collection and financial opportunity monitoring tool. It contains only the market workflow extracted from the former combined `news-market-digest` application.
 
-## 🌟 Core Features
+The project collects market indicators, fund and bond data, and arbitrage signals, stores them in a market-only SQLite database, and produces a Markdown market report with supporting charts.
 
-### Part 1: 📰 RSS News & Global Insights
+News RSS collection, article translation, news categorization, news persistence, and news reports are maintained in the separate [`news-digest`](../news-digest) project.
 
-* **Multi-source Aggregation**: Subscribe to global mainstream media like TechCrunch, NY Times, BBC, Le Figaro, and more.
-* **Intelligent Translation**: Automatically translate foreign news into Chinese (supports English, French, and other languages).
-* **Keyword Categorization**: Automatically classify news entries (e.g., AI, International) based on a built-in keyword dictionary.
-* **Deduplication & Merging**: Identify and merge similar topics to reduce information redundancy.
-* **Data Persistence**: Store unique news articles in a local SQLite database for historical tracking.
+## Features
 
-### Part 2: 💰 Financial Insights & Arbitrage
+### Market and macro data
 
-* **Fund Arbitrage**: Monitor premium/discount rates and subscription status of LOF/IOF and QDII funds.
-* **Bond Monitoring**: Scan Chinese Convertible Bonds (Cbond) for "Double Low" opportunities and put-back suggestions.
-* **Equity Arbitrage**: Track A-share cash option arbitrage and SPAC yield analysis.
-* **Macro Market Data**: Real-time tracking of Forex rates (BOC) and major commodities (Gold, Silver).
+- Global market indices, including the FTSE 100
+- Foreign-exchange rates collected from the configured market data sources
+- US 10-year Treasury yield through Yahoo Finance's `^TNX` symbol
+- Gold, silver, oil, and other configured commodity prices
+- Historical trend charts for selected market series
 
----
+The Yahoo Finance `^TNX` value is scaled by `0.1` to represent the Treasury yield percentage correctly.
 
-## 📁 Project Structure
+### Fund and arbitrage monitoring
+
+- LOF and IOF premium/discount monitoring
+- QDII arbitrage opportunities
+- QDII OTC subscription-limit status monitoring through Eastmoney fund information
+- Closed-end fund (CEF) discount and opportunity screening
+- A-share cash-offer arbitrage
+- SPAC opportunity analysis
+
+Expired A-share offer periods are filtered out before they reach the report.
+
+### Bond monitoring
+
+- Convertible-bond double-low screening
+- Convertible-bond putback monitoring
+- New bond issuance tracking
+
+### Reporting and delivery
+
+The market report is written as Markdown and includes market tables, strategy sections, source notes, and chart links. Email delivery is optional and is performed only after a report has been generated successfully.
+
+## Project structure
 
 ```text
-news-market-digest/
-├── main.py              # Unified entry point
-├── app/               
-│   ├── core/            # Core logical components
-│   │   ├── fetcher.py         # Multi-threaded RSS feed aggregator
-│   │   ├── processor.py       # News cleaning, deduplication, and categorization
-│   │   ├── translator.py      # Multi-language translation engine
-│   │   ├── renderer.py        # Markdown report generator for news
-│   │   ├── db.py              # SQLite database manager for financial data
-│   │   ├── news_db.py         # SQLite database manager for news articles
-│   │   ├── arb_reporter.py    # Generator for financial arbitrage analysis
-│   │   ├── unified_reporter.py # Coordinator for merged News + Finance reports
-│   │   └── mailer.py          # SMTP email delivery service
-│   ├── collectors/      # Specialized financial data scrapers
-│   │   ├── market_indices.py  # Global market indices tracking
-│   │   ├── forex.py           # Real-time exchange rates (BOC)
-│   │   ├── commodities.py     # Gold, Silver, and Commodities prices
-│   │   ├── cbond_monitor.py   # Convertible Bond analysis (Double Low strategy)
-│   │   ├── lof_funds.py       # LOF/IOF premium and discount monitoring
-│   │   ├── qdii_arbitrage.py  # QDII fund arbitrage opportunity tracking
-│   │   ├── cef_arbitrage.py   # Closed-End Fund (CEF) monitoring
-│   │   ├── bond_issuance.py   # New bond issuance alerts
-│   │   ├── a_share_arbitrage.py # A-share cash option and stock arbitrage
-│   │   └── spac_arbitrage.py  # SPAC yield and opportunity analysis
-├── config/            
-│   ├── settings.py      # Configuration (Local)
-│   ├── settings.py.example  # Configuration template
-│   ├── categories.json  # Category keywords (Local)
-│   └── categories.json.example # Category template
-├── data/                # Local database storage (finance_data.db, news_data.db)
-├── output/              # Generated intelligence reports (.md)
-└── requirements.txt     # Python dependencies
+market-digest/
+├── main.py
+├── app/
+│   ├── __init__.py
+│   ├── collectors/
+│   │   ├── market_indices.py      # Global indices and FTSE 100
+│   │   ├── forex.py               # FX rates and US 10Y Treasury yield
+│   │   ├── commodities.py         # Commodity prices
+│   │   ├── lof_funds.py            # LOF/IOF monitoring
+│   │   ├── qdii_arbitrage.py       # QDII arbitrage opportunities
+│   │   ├── qdii_otc_limits.py      # Eastmoney OTC subscription status
+│   │   ├── cef_arbitrage.py        # Closed-end funds
+│   │   ├── a_share_arbitrage.py    # A-share cash-offer arbitrage
+│   │   ├── spac_arbitrage.py       # SPAC analysis
+│   │   ├── cbond_monitor.py        # Convertible bonds
+│   │   └── bond_issuance.py        # New bond issuance
+│   └── core/
+│       ├── db.py                   # Market-only SQLite schema and persistence
+│       ├── arb_reporter.py         # Market opportunity formatting
+│       ├── unified_reporter.py     # Market Markdown report generation
+│       ├── mailer.py               # Optional SMTP delivery
+│       └── jsl_session.py          # Jisilu session/client support
+├── config/
+│   └── settings.py                 # Strategy and local mail settings
+├── data/
+│   └── finance_data.db             # Market-only SQLite database
+├── output/
+│   ├── Market_Digest_YYYY-MM-DD.md
+│   └── images/                     # Generated market charts
+├── scripts/
+│   ├── run_manual.bat              # Manual Windows launcher
+│   ├── run_task.bat                # Task Scheduler launcher
+│   └── update_env.bat              # Environment helper
+└── requirements.txt
 ```
 
-## 🛠️ Quick Start
+## Requirements
 
-### 1. Installation
+- Windows, Linux, or macOS
+- Python 3.11 or newer recommended
+- Network access to the configured market-data providers
+- Access to Jisilu for the collectors that use Jisilu data; some pages may require an authenticated session or may enforce rate limits
+- Optional SMTP access for email delivery
+
+Dependencies are declared in `requirements.txt`. The project uses packages including `requests`, `beautifulsoup4`, `yfinance`, `curl_cffi`, `python-dotenv`, `markdown`, and OCR support used by some collectors or data-source workflows.
+
+## Installation
+
+From the project directory:
 
 ```bash
-pip install -r requirements.txt
+python -m pip install -r requirements.txt
 ```
 
-### 2. Usage
+A virtual environment is recommended:
 
 ```bash
-# Run full aggregation (News + Finance) and generate report
+python -m venv .venv
+.venv\Scripts\activate
+python -m pip install -r requirements.txt
+```
+
+On macOS or Linux:
+
+```bash
+source .venv/bin/activate
+python -m pip install -r requirements.txt
+```
+
+## Usage
+
+Run the complete market collection and report pipeline:
+
+```bash
 python main.py
+```
 
-# Run only RSS News part
-python main.py --news
+Generate the market report and send it by email:
 
-# Run only Financial Arbitrage part
-python main.py --arb
-
-# Run and send the report via Email
+```bash
 python main.py --mail
 ```
 
-## 🚀 Automation (Windows)
+Display command-line options:
 
-The `scripts/` folder contains batch files for easy execution and automation:
+```bash
+python main.py --help
+```
 
-- **`run_manual.bat`**: Double-click to manually run the full pipeline and see the results in a console window.
-- **`run_task.bat`**: Designed for **Windows Task Scheduler**. It runs the pipeline silently and logs all output to `output/task_scheduler_log.txt`.
+The current entry point intentionally has no `--news`, `--arb`, or unified-news options. It runs the market collectors, initializes the market database, generates the market report, optionally sends it, and removes market chart images older than 30 days.
 
-### Setting up Task Scheduler:
-1. Open **Task Scheduler**.
-2. Create a new Basic Task.
-3. Trigger: Daily (or your preferred interval).
-4. Action: Start a Program.
-5. Program/script: Browse to `scripts/run_task.bat`.
-6. Start in: (Crucial) Set this to the project root directory path.
+## Collection pipeline
 
-## 📄 Notes
+A normal run performs these stages:
 
-* Financial analysis data is for reference only and does not constitute investment advice.
-* Database is stored in the `data/` directory; Markdown reports are in the `output/` directory.
+1. Initialize `data/finance_data.db`.
+2. Run the configured LOF/IOF, bond, A-share, FX, commodity, SPAC, CEF, QDII, convertible-bond, index, and OTC-limit collectors.
+3. Persist collector results in market-specific tables.
+4. Build the market report from the stored/current market data.
+5. Write the report to `output/` and charts to `output/images/`.
+6. If `--mail` was supplied and mail credentials are configured, send the report.
+7. Remove PNG chart files older than 30 days.
+
+A failure in one collector is logged and does not automatically prevent the remaining collectors from running. A provider may still return incomplete data because of network errors, login limits, anti-bot checks, maintenance, or delayed market updates.
+
+## Market database
+
+The market database is:
+
+```text
+data/finance_data.db
+```
+
+It contains market-specific tables such as:
+
+- `market_indices`
+- `forex_rates`
+- `commodities`
+- `lof_funds`
+- `qdii_arbitrage`
+- `fund_otc_limits`
+- `cef_arbitrage`
+- `stock_arbitrage`
+- `spac_arbitrage`
+- `cbond_double_low`
+- `cbond_putback`
+- `bond_issuance`
+
+The database is intentionally separate from `news-digest/data/news_data.db`. Do not point either project at the other project's database.
+
+## Configuration
+
+Strategy thresholds and local settings are maintained in `config/settings.py`. Review the configuration before changing production or scheduled runs, especially:
+
+- CEF discount and liquidity thresholds
+- QDII and LOF screening thresholds
+- Convertible-bond filters
+- A-share arbitrage yield thresholds
+- Output and email behavior
+
+### Email configuration
+
+Do not store passwords, app passwords, API keys, or tokens in source files. Configure the market mail settings through environment variables:
+
+```text
+MARKET_DIGEST_SENDER_EMAIL=[REDACTED]
+MARKET_DIGEST_SENDER_PASSWORD=[REDACTED]
+MARKET_DIGEST_RECEIVERS=recipient@example.com
+```
+
+For multiple recipients:
+
+```text
+MARKET_DIGEST_RECEIVERS=one@example.com,two@example.com
+```
+
+The default SMTP configuration uses Gmail SMTP over SSL. Change `SMTP_SERVER` and `SMTP_PORT` in `config/settings.py` when using a different provider.
+
+### External data-source notes
+
+- Yahoo Finance supplies the index and Treasury-yield series used by the report.
+- The Eastmoney fund API supplies the current QDII OTC subscription status, including fields such as `SGZT`.
+- Jisilu-based collectors may require a valid local session and can be affected by access limits.
+- A current OTC status is compared with local history to identify changes; the collector does not reconstruct a complete historical announcement archive from Eastmoney.
+
+## Windows automation
+
+The `scripts/` directory contains Windows batch launchers. Before using a batch file in Task Scheduler, verify that its command-line options match the current `main.py` entry point and that the **Start in** directory is the project root.
+
+For a direct Task Scheduler action, the reliable equivalent is:
+
+```text
+Program/script: C:\Path\To\Python\python.exe
+Arguments: main.py --mail
+Start in: C:\Users\5xgames\Desktop\github\market-digest
+```
+
+Redirect logs to `output/` if a scheduled run needs persistent diagnostics. Ensure the scheduled account has access to the Python environment, database directory, output directory, and any required local session files.
+
+## Troubleshooting
+
+### A collector returns no data
+
+Check network connectivity, provider availability, response changes, anti-bot protection, and authentication requirements. Run the collector from the project root so relative paths resolve correctly.
+
+### Jisilu data is unavailable
+
+Jisilu may enforce login or request limits. Treat an empty result as a data-source issue rather than assuming that no market opportunities exist. Confirm the local session configuration and retry later.
+
+### Yahoo Finance data is unavailable
+
+Check the symbol, network access, and the installed `yfinance`/`curl_cffi` versions. The report can still be generated while one data source is unavailable, but the affected section may be empty or stale.
+
+### The Treasury yield looks ten times too high or too low
+
+The `^TNX` Yahoo value uses a different scale from a normal percentage display. The collector must retain the `0.1` conversion used by this project.
+
+### Old arbitrage opportunities remain visible
+
+Check the collector's date filtering and the timestamp of the latest successful run. A-share offers whose end date is earlier than the current date should be excluded. Do not manually edit the database unless performing a deliberate data correction.
+
+### Email delivery fails
+
+Confirm that the `MARKET_DIGEST_*` variables are set in the same environment used by the command or Task Scheduler. Verify SMTP host, port, sender authorization, recipient formatting, and network access. Never expose the password in logs or issue reports.
+
+## Relationship with news-digest
+
+The responsibilities and databases are deliberately separated:
+
+| Responsibility | Project | Database |
+|---|---|---|
+| RSS feeds, translation, filtering, categorization, news reports | `news-digest` | `data/news_data.db` |
+| Market data, funds, bonds, commodities, arbitrage, market reports | `market-digest` | `data/finance_data.db` |
+
+`market-digest` must not import the news fetcher, translator, processor, renderer, or news database. Use `news-digest` when the desired output is a news report.
+
+## Data quality and investment disclaimer
+
+Market data comes from third-party services and may be delayed, incomplete, unavailable, or subject to provider-specific definitions. Arbitrage calculations and screening results are informational and may omit fees, taxes, liquidity constraints, execution risk, settlement rules, subscription restrictions, and corporate-action details.
+
+This project is for research and information purposes only. It is not investment advice, a solicitation, or a guarantee of returns. Verify all figures and conditions independently before making any financial decision.

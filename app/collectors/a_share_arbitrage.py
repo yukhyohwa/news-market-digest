@@ -1,6 +1,8 @@
 import requests
 import time
 import random
+import re
+from datetime import date
 from app.core.db import save_data
 
 # Configuration
@@ -11,6 +13,30 @@ HEADERS = {
     "X-Requested-With": "XMLHttpRequest",
     "Referer": "https://www.jisilu.cn/data/taoligu/#cna"
 }
+
+
+def has_expired_offer_period(descr, today=None):
+    """Return True when an offer period stated in the description has ended."""
+    if not descr:
+        return False
+
+    today = today or date.today()
+    date_pattern = r'(\d{4})年(\d{1,2})月(\d{1,2})日'
+    # Match the usual wording: "要约收购期限...即 YYYY年M月D日至YYYY年M月D日".
+    period_match = re.search(
+        rf'(?:要约收购期限|收购期限|要约期限).*?({date_pattern})\s*至\s*({date_pattern})',
+        descr,
+        re.S
+    )
+    if not period_match:
+        return False
+
+    try:
+        end_parts = period_match.group(6), period_match.group(7), period_match.group(8)
+        end_date = date(*(int(part) for part in end_parts))
+        return end_date < today
+    except (TypeError, ValueError):
+        return False
 
 def fetch_a_share_arbitrage():
     """Fetch A-share arbitrage data and return filtered list (Price < Cash Option Price)."""
@@ -64,10 +90,15 @@ def fetch_a_share_arbitrage():
                 choose_price_str = cell.get('choose_price')
                 type_cd = cell.get('type_cd', '')
                 descr = cell.get('descr', '')
-                
+
+                # Do not report expired tender-offer opportunities. A low price
+                # is not actionable after the stated offer period has ended.
+                if has_expired_offer_period(descr):
+                    continue
+
                 if not price_str or price_str == '-' or not choose_price_str or choose_price_str == '-':
                     continue
-                    
+
                 price = float(price_str)
                 choose_price = float(choose_price_str)
                 
