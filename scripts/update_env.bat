@@ -23,11 +23,16 @@ echo Upgrading pip...
 echo.
 echo Installing requirements...
 %PYTHON_EXE% -m pip install -r requirements.txt
+if errorlevel 1 (
+    echo [FAILED] Dependency installation failed with code %errorlevel%.
+    pause
+    exit /b %errorlevel%
+)
 
 echo.
 echo Checking deep-translator...
 %PYTHON_EXE% -m pip list | findstr "deep-translator"
 
 echo.
-echo "Update completed."
+echo Update completed.
 pause
